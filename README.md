@@ -1,10 +1,8 @@
-/**
- * Copyright (c) 2016 Institut fuer Lern-Innovation, Friedrich-Alexander-Universitaet Erlangen-Nuernberg
- * GPLv3, see LICENSE
- *
- * @author Fred Neumann <fred.neumann@fau.de>
- * @version $Id$
- */
+
+Copyright (c) 2016 Institut fuer Lern-Innovation, Friedrich-Alexander-Universitaet Erlangen-Nuernberg
+GPLv3, see LICENSE
+
+Author Fred Neumann <fred.neumann@fau.de>
 
 
 INSTALLATION
