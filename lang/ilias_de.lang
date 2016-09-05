@@ -1,0 +1,37 @@
+//
+// Copyright (c) 2015 Institut fuer Lern-Innovation, Friedrich-Alexander-Universitaet Erlangen-Nuernberg
+// GPLv3, see LICENSE
+//
+// @author Fred Neumann <fred.neumann@fau.de>
+// @version $Id$
+//
+
+<!-- language file start -->
+cmd_insert#:#Eingabefeld einfügen
+edit_input_field#:#Eingabefeld bearbeiten
+content_plugin_version#:#Zuletzt bearbeitet mit Version
+mode#:#Modus
+property#:#Eigenschaft
+settings#:#Einstellungen
+field_name#:#Feldname
+field_type#:#Feldtyp
+field_type_text#:#Einzeilige Texteingabe
+field_size#:#Länge (Zeichen)
+field_maxlength#:#Maximale Eingabelänge (Zeichen)
+field_type_textarea#:#Mehrzeilige Texteingabe
+field_rows#:#Höhe (Zeichen)
+field_cols#:#Breite (Zeichen)
+field_type_select#:#Wert-Auswahl
+select_type#:#Auswahltyp
+select_type_single#:#Einzelner Wert
+select_type_multi#:#Mehrere Werte
+select_choices#:#Auswählbare Werte
+field_context#:#Eingabe-Kontext
+field_context_info#:#Gleichnamige Felder in diesem Kontext teilen sich denselben Inhalt.
+context_page#:#Diese Seite
+context_module#:#Dieses Lernmodul
+context_course#:#Der übergeordnete Kurs
+saving#:#speichere
+context_page_short#:#Seite
+context_module_short#:#Lernmodul
+context_course_short#:#Kurs

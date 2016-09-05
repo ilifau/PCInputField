@@ -1,0 +1,37 @@
+//
+// Copyright (c) 2015 Institut fuer Lern-Innovation, Friedrich-Alexander-Universitaet Erlangen-Nuernberg
+// GPLv3, see LICENSE
+//
+// @author Fred Neumann <fred.neumann@fau.de>
+// @version $Id$
+//
+
+<!-- language file start -->
+cmd_insert#:#Insert Input Field
+edit_input_field#:#Edit Input Field
+content_plugin_version#:#Content last edited with version
+mode#:#Mode
+property#:#Property
+settings#:#Settings
+field_name#:#Field Name
+field_type#:#Field Type
+field_type_text#:#Single Line Text Input
+field_size#:#Length (Characters)
+field_maxlength#:#Maximum Input Length (Characters)
+field_type_textarea#:#Multi Line Text Input
+field_rows#:#Height (Characters)
+field_cols#:#Width (Characters)
+field_type_select#:#Selection of Options
+select_type#:#Select Type
+select_type_single#:#Single Selection
+select_type_multi#:#Multiple Selection
+select_choices#:#Choices
+field_context#:#Context for Inputs
+field_context_info#:#Fields with the same name in this context will share the same user input.
+context_page#:#This Page
+context_module#:#This Learning Module
+context_course#:#The Parent Course
+saving#:#saving
+context_page_short#:#page
+context_module_short#:#module
+context_course_short#:#course
