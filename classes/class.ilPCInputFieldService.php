@@ -42,13 +42,15 @@ class ilPCInputFieldService
     */
     public function handleRequest()
     {
-        global $ilAccess; $ilUser;
+        /** @var ilAccessHandler $ilAccess */
+        global $ilAccess, $ilUser;
+
 
         try
         {
-            if (!$ilAccess->checkAccess('read', '', $_GET[ref_id]))
+            if (!$ilAccess->checkAccess('read', '', $_GET['ref_id']))
             {
-                $this->respondHTTP(403); // forbidden
+                $this->respondHTTP(403, $ilUser->getLogin()); // forbidden
             }
 
 
@@ -65,7 +67,7 @@ class ilPCInputFieldService
         }
         catch (Exception $exception)
         {
-            $this->respondHTTP(500, $exception->getMessage());
+            //$this->respondHTTP(500, $exception->getMessage());
         }
     }
 
@@ -111,7 +113,8 @@ class ilPCInputFieldService
 
     /**
      * Send a HTTP response
-     * @param string  response message
+     * @param   int     $status     HTTP status
+     * @param string    $message    response message
      */
     protected function respondHTTP($status, $message = null)
     {
@@ -124,10 +127,12 @@ class ilPCInputFieldService
             case 404: $text = 'Not Found'; break;
             case 500: $text = 'Internal Server Error'; break;
             case 501: $text = 'Not Implemented'; break;
-
+            default: $text = 'Unknown';
         }
         header('HTTP/1.1 '. $status .' '. $text);
         header('Content-type: text/plain');
+
         echo isset($message) ? $message : $text;
+        exit;
     }
 }

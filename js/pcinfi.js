@@ -61,7 +61,7 @@ il.PCInputField = new function() {
 
     /**
      * Save a changed input
-     * @param   $field  jquery object of the field div
+     * @param   field  jquery object of the field div
      */
     this.save = function(field)
     {
@@ -107,7 +107,7 @@ il.PCInputField = new function() {
             if (self.savings <= 0) {
                 field.find('.pcinfi-loader').css('visibility','hidden');
             }
-            if (jqXHR.status != 0)
+            if (jqXHR.status !== 0)
             {
                 alert('Saving Failed: (' + jqXHR.status + ') ' + jqXHR.responseText);
             }

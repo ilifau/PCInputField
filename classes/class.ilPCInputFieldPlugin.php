@@ -66,8 +66,10 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 	
 	/**
 	 * Get Javascript files
+	 * @param	string	$a_mode
+	 * @return 	array
 	 */
-	function getJavascriptFiles()
+	function getJavascriptFiles($a_mode = '')
 	{
         //return array();
 		return array("js/pcinfi.js");
@@ -75,8 +77,10 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 	
 	/**
 	 * Get css files
+     * @param	string	$a_mode
+     * @return 	array
 	 */
-	function getCssFiles()
+	function getCssFiles($a_mode = '')
 	{
         return array();
 		//return array("css/pcinfi.css");
@@ -84,4 +88,3 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 
 }
 
-?>

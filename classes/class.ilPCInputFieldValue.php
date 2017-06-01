@@ -45,8 +45,8 @@ class ilPCInputFieldValue
 
     /**
      * Get a result by id
-     * @param integer id
-     * @return ExternalContentResult of null if not exists
+     * @param integer $a_id
+     * @return ilPCInputFieldValue or null if not exists
      */
     public static function getById($a_id)
     {
@@ -72,13 +72,13 @@ class ilPCInputFieldValue
     /**
      * Get a result by keys
      *
-     * @param string    context type
-     * @param integer   context id
-     * @param integer   user id
-     * @param string    field name
-     * @param boolean   save a new result object result if not exists
+     * @param string    $a_context_type
+     * @param integer   $a_context_id
+     * @param integer   $a_user_id
+     * @param string    $a_field_name
+     * @param boolean   $a_create   save a new result object result if not exists
      *
-     * @return ExternalContentResult
+     * @return ilPCInputFieldValue
      */
     public static function getByKeys($a_context_type, $a_context_id, $a_user_id, $a_field_name, $a_create = false)
     {
@@ -117,7 +117,7 @@ class ilPCInputFieldValue
 
     /**
      * Fill the properties with data from an array
-     * @param array assoc data
+     * @param array $data (assoc data)
      */
     protected function fillData($data)
     {
