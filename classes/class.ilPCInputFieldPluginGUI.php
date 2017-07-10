@@ -52,7 +52,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			default:
 				// perform valid commands
 				$cmd = $ilCtrl->getCmd();
-				if (in_array($cmd, array("create", "save", "edit", "update", "cancel")))
+				if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "cancel")))
 				{
 					$this->$cmd();
 				}
@@ -76,7 +76,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 	}
 
 	/**
-	 * Save new pc example element
+	 * Save new pc input
 	 */
 	public function create()
 	{
@@ -125,40 +125,72 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		$form = $this->initForm(true);
 		if ($form->checkInput())
 		{
-			//If send to exercise
-			if((int)$form->getInput('send_to_exercise'))
+			//Update only setting not related to sending to exercise
+			$existing_properties = $this->getProperties();
+			$properties = array('field_name' => $form->getInput('field_name'), 'field_type' => $form->getInput('field_type'), 'field_size' => $form->getInput('field_size'), 'field_maxlength' => $form->getInput('field_maxlength'), 'field_cols' => $form->getInput('field_cols'), 'field_rows' => $form->getInput('field_rows'), 'select_type' => $form->getInput('select_type'), 'select_choices' => serialize($form->getInput('select_choices')), 'field_context' => $form->getInput('field_context'),);
+
+			foreach ($existing_properties as $property_name => $value)
 			{
-				$properties = array('field_name' => $form->getInput('field_name'),
-					'field_type' => $form->getInput('field_type'),
-					'field_size' => $form->getInput('field_size'),
-					'field_maxlength' => $form->getInput('field_maxlength'),
-					'field_cols' => $form->getInput('field_cols'),
-					'field_rows' => $form->getInput('field_rows'), 'select_type' => $form->getInput('select_type'),
-					'select_choices' => serialize($form->getInput('select_choices')),
-					'field_context' => $form->getInput('field_context'),
-					'send_to_exercise' => $form->getInput('send_to_exercise'),
-					'select_exercise' => $form->getInput('select_exercise'),
-					'select_exercise_sel' => $form->getInput('select_exercise_sel'),
-					'select_assignment' => $form->getInput('select_assignment'));
-			} else
-			{
-				$properties = array('field_name' => $form->getInput('field_name'),
-					'field_type' => $form->getInput('field_type'),
-					'field_size' => $form->getInput('field_size'),
-					'field_maxlength' => $form->getInput('field_maxlength'),
-					'field_cols' => $form->getInput('field_cols'),
-					'field_rows' => $form->getInput('field_rows'),
-					'select_type' => $form->getInput('select_type'),
-					'select_choices' => serialize($form->getInput('select_choices')),
-					'field_context' => $form->getInput('field_context'),
-					'send_to_exercise' => $form->getInput('send_to_exercise'));
+				if (key_exists($property_name, $properties))
+				{
+					$existing_properties[$property_name] = $properties[$property_name];
+				}
 			}
 
-			if ($this->updateElement($properties))
+			if ($this->updateElement($existing_properties))
 			{
 				ilUtil::sendSuccess($lng->txt("msg_obj_modified"), true);
 				$this->returnToParent();
 			}
+		}
+		$form->setValuesByPost();
+		$tpl->setContent($form->getHtml());
+	}
+
+	public function send()
+	{
+		global $tpl;
+
+		$this->setTabs("send");
+		$form = $this->initSendForm();
+		$pg = $this->getPCGUI()->getContentObject()->getPage();
+		$tpl->setContent($html . $form->getHTML());
+	}
+
+	/**
+	 * Update
+	 *
+	 * @param
+	 * @return
+	 */
+	public function updateSend()
+	{
+		global $tpl, $lng, $ilCtrl;
+
+		$form = $this->initSendForm(true);
+
+		if ($form->checkInput())
+		{
+			$exercise = array('select_exercise' => $form->getInput('select_exercise'));
+
+			//if exercise is selected, select assignment
+			if ((int)$form->getInput('select_exercise') > 0)
+			{
+				$assignment = array('select_assignment' => $form->getInput('select_assignment'));
+			} else
+			{
+				$assignment = array('select_assignment' => "0");
+			}
+
+			$existing_properties = $this->getProperties();
+
+			//Update also non-related settings
+			if ($this->updateElement(array_merge($existing_properties, $exercise, $assignment)))
+			{
+				ilUtil::sendSuccess($lng->txt("msg_obj_modified"), true);
+				$this->returnToParent();
+			}
+
 		}
 		$form->setValuesByPost();
 		$tpl->setContent($form->getHtml());
@@ -269,54 +301,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			$select_type->setValue($prop['select_type']);
 			$select_choices->setValue((array)unserialize($prop['select_choices']));
 			$context->setValue($prop["field_context"]);
-
-			//COP
-			//Send to an exercise if checkbox is checked
-			$send_to_exercise = new ilCheckboxInputGUI($this->txt("send_to_exercise"), "send_to_exercise");
-			$send_to_exercise->setChecked((boolean)$prop['send_to_exercise']);
-
-			//Exercise selector
-			include_once("./Services/Form/classes/class.ilRepositorySelector2InputGUI.php");
-			$exercise_selector = new ilRepositorySelector2InputGUI($this->txt('select_exercise'), 'select_exercise');
-			$exercise_selector->getExplorerGUI()->setRootId(1);
-
-			//Add types of objects that should be shown
-			$exercise_selector->getExplorerGUI()->setTypeWhiteList(array_merge(array("exc"), array("root", "cat", "grp", "fold", "crs")));
-
-			//Add types of objects that can be selected
-			$exercise_selector->getExplorerGUI()->setSelectableTypes(array("exc"));
-			$exercise_selector->setValue($prop['select_exercise_sel']);
-
-			//Add exercise selector to Form
-			$send_to_exercise->addSubItem($exercise_selector);
-
-			//Show Assignment selector
-			if((int)$prop['select_exercise_sel'] > 0)
-			{
-				include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
-				$exercise = ilObjectFactory::getInstanceByRefId((int)$prop['select_exercise_sel']);
-				$assignments_list = ilExAssignment::getAssignmentDataOfExercise($exercise->getId());
-
-				//Add dropdown with assignments
-				if(sizeof($assignments_list)){
-					include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
-					$assignment_selector = new ilSelectInputGUI("select_assignment", "select_assignment");
-
-					$assignment_array = array();
-					foreach($assignments_list as $assignment){
-						$assignment_array[$assignment["id"]] = $assignment["title"];
-					}
-
-					$assignment_selector->setOptions($assignment_array);
-					$assignment_selector->setValue($prop['select_assignment']);
-
-					$send_to_exercise->addSubItem($assignment_selector);
-				}
-			}
-
-
-			$form->addItem($send_to_exercise);
-			//COP
 		}
 
 		// save and cancel commands
@@ -337,6 +321,82 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		return $form;
 	}
 
+	/**
+	 * Init send to exercise form
+	 *
+	 * @param        int $a_mode Edit Mode
+	 */
+	protected function initSendForm($a_create = false)
+	{
+		global $lng, $ilCtrl;
+
+		include_once("Services/Form/classes/class.ilPropertyFormGUI.php");
+		$form = new ilPropertyFormGUI();
+
+		$prop = $this->getProperties();
+
+		//field exercise selector
+		include_once("./Services/Form/classes/class.ilRepositorySelector2InputGUI.php");
+		$exercise_selector = new ilRepositorySelector2InputGUI($this->txt('select_exercise'), 'select_exercise');
+		$exercise_selector->getExplorerGUI()->setRootId(1);
+		//Add types of objects that should be shown
+		$exercise_selector->getExplorerGUI()->setTypeWhiteList(array_merge(array("exc"), array("root", "cat", "grp", "fold", "crs")));
+		//Add types of objects that can be selected
+		$exercise_selector->getExplorerGUI()->setSelectableTypes(array("exc"));
+		$form->addItem($exercise_selector);
+
+
+		//If exercise is selected, show assigments
+		if ((int)$prop['select_exercise'] > 0)
+		{
+			$exercise_selector->setValue($prop['select_exercise']);
+
+			include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
+			$exercise = ilObjectFactory::getInstanceByRefId((int)$prop['select_exercise']);
+			$assignments_list = ilExAssignment::getAssignmentDataOfExercise($exercise->getId());
+			include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
+			$assignment_selector = new ilSelectInputGUI("select_assignment", "select_assignment");
+
+			$assignment_array = array();
+			$assignment_array["0"] = $this->txt('no_assignment_selected');
+			foreach ($assignments_list as $assignment)
+			{
+				$assignment_array[$assignment["id"]] = $assignment["title"];
+			}
+
+			$assignment_selector->setOptions($assignment_array);
+			$assignment_selector->setValue($prop['select_assignment']);
+
+			$form->addItem($assignment_selector);
+		}
+
+
+		if ($a_create)
+		{
+
+
+		} else
+		{
+
+		}
+
+		// save and cancel commands
+		if ($a_create)
+		{
+			$this->addCreationButton($form);
+			$form->addCommandButton("cancel", $lng->txt("cancel"));
+			$form->setTitle($this->txt("cmd_insert"));
+		} else
+		{
+			$form->addCommandButton("updateSend", $lng->txt("save"));
+			$form->addCommandButton("cancel", $lng->txt("cancel"));
+			$form->setTitle($this->txt("send_to_exercise"));
+		}
+
+		$form->setFormAction($ilCtrl->getFormAction($this));
+
+		return $form;
+	}
 
 	/**
 	 * Cancel
@@ -360,6 +420,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		$pl = $this->getPlugin();
 
 		$ilTabs->addTab("edit", $pl->txt("settings"), $ilCtrl->getLinkTarget($this, "edit"));
+
+		$ilTabs->addTab("send", $pl->txt("send_to_exercise"), $ilCtrl->getLinkTarget($this, "send"));
 
 		$ilTabs->activateTab($a_active);
 	}
@@ -405,6 +467,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		{
 			$value = $valObj->field_value;
 		}
+
 
 		$tpl = $this->getPlugin()->getTemplate("tpl.content.html");
 
