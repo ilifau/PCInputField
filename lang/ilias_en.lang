@@ -35,3 +35,7 @@ saving#:#saving
 context_page_short#:#page
 context_module_short#:#module
 context_course_short#:#course
+send_to_exercise#:#Send to exercise
+select_exercise#:#Select exercise
+select_assignment#:#Select assignment
+no_assignment_selected#:#No assignments selected

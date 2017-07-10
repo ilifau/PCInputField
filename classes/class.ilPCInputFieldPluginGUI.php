@@ -355,7 +355,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			$exercise = ilObjectFactory::getInstanceByRefId((int)$prop['select_exercise']);
 			$assignments_list = ilExAssignment::getAssignmentDataOfExercise($exercise->getId());
 			include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
-			$assignment_selector = new ilSelectInputGUI("select_assignment", "select_assignment");
+			$assignment_selector = new ilSelectInputGUI($this->txt('select_assignment'), "select_assignment");
 
 			$assignment_array = array();
 			$assignment_array["0"] = $this->txt('no_assignment_selected');
