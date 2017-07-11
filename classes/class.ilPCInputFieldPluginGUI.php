@@ -49,6 +49,12 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 		switch ($next_class)
 		{
+			// glossary selection in properties form
+			case "ilpropertyformgui":
+				$form = $this->initSendForm();
+				$ilCtrl->forwardCommand($form);
+				return;
+
 			default:
 				// perform valid commands
 				$cmd = $ilCtrl->getCmd();
@@ -188,7 +194,11 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			if ($this->updateElement(array_merge($existing_properties, $exercise, $assignment)))
 			{
 				ilUtil::sendSuccess($lng->txt("msg_obj_modified"), true);
-				$this->returnToParent();
+				//$this->returnToParent();
+
+				$this->send();
+				return;
+
 			}
 
 		}
