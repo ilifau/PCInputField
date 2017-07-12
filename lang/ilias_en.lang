@@ -35,7 +35,14 @@ saving#:#saving
 context_page_short#:#page
 context_module_short#:#module
 context_course_short#:#course
-send_to_exercise#:#Send to exercise
-select_exercise#:#Select exercise
-select_assignment#:#Select assignment
-no_assignment_selected#:#No assignments selected
+send_to_exercise#:#Send to Exercise
+select_exercise#:#Select Exercise
+select_assignment#:#Select Assignment
+no_assignment_selected#:#No Assignments Selected
+assignment_schedule_start#:#Assignment Start
+assignment_schedule_deadline#:#Assignment Deadline
+assignment_schedule_no_start_time#:#This Assignment doesn't have a Start Time
+assignment_schedule_no_deadline#:#This Assignment doesn't have a Deadline
+not_yet_submitted#:#Not Submitted yet
+not_yet_evaluated#:#Not Evaluated yet
+path_to_related_exercise#:#Path to Related Exercise
