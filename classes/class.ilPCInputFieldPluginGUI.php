@@ -52,6 +52,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			// glossary selection in properties form
 			case "ilpropertyformgui":
 				$form = $this->initSendForm();
+				$ilCtrl->setReturn($this, "updateExerciseRefId");
 				$ilCtrl->forwardCommand($form);
 
 				return;
@@ -59,7 +60,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			default:
 				// perform valid commands
 				$cmd = $ilCtrl->getCmd();
-				if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "cancel")))
+				if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "updateExerciseRefId", "cancel")))
 				{
 					$this->$cmd();
 				}
@@ -209,6 +210,26 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 
 	/**
+	 * Save the exercise reference coming from the repository selector
+	 * This is needed by the selector up to ILIAS 5.1
+	 */
+	public function updateExerciseRefId()
+	{
+		global $ilCtrl;
+
+		$form = $this->initSendForm();
+		$input = $form->getItemByPostVar('select_exercise');
+		$input->readFromSession();
+
+		$properties = $this->getProperties();
+		$properties['select_exercise'] = $input->getValue();
+		$properties['select_assignment'] = 0;
+		$this->updateElement($properties);
+		$ilCtrl->redirect($this, 'send');
+	}
+
+
+	/**
 	 * Init editing form
 	 *
 	 * @param        int $a_mode Edit Mode
@@ -347,13 +368,20 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		$prop = $this->getProperties();
 
 		//field exercise selector
-		include_once("./Services/Form/classes/class.ilRepositorySelector2InputGUI.php");
-		$exercise_selector = new ilRepositorySelector2InputGUI($this->txt('select_exercise'), 'select_exercise');
-		$exercise_selector->getExplorerGUI()->setRootId(1);
-		//Add types of objects that should be shown
-		$exercise_selector->getExplorerGUI()->setTypeWhiteList(array_merge(array("exc"), array("root", "cat", "grp", "fold", "crs")));
-		//Add types of objects that can be selected
-		$exercise_selector->getExplorerGUI()->setSelectableTypes(array("exc"));
+//		only ILIAS 5.2
+//		include_once("./Services/Form/classes/class.ilRepositorySelector2InputGUI.php");
+//		$exercise_selector = new ilRepositorySelector2InputGUI($this->txt('select_exercise'), 'select_exercise');
+//		$exercise_selector->getExplorerGUI()->setRootId(1);
+//		//Add types of objects that should be shown
+//		$exercise_selector->getExplorerGUI()->setTypeWhiteList(array_merge(array("exc"), array("root", "cat", "grp", "fold", "crs")));
+//		//Add types of objects that can be selected
+//		$exercise_selector->getExplorerGUI()->setSelectableTypes(array("exc"));
+//		$form->addItem($exercise_selector);
+//		$selected_assignment = array();
+
+		include_once("./Services/Form/classes/class.ilRepositorySelectorInputGUI.php");
+		$exercise_selector = new ilRepositorySelectorInputGUI($this->txt('select_exercise'), 'select_exercise');
+		$exercise_selector->setClickableTypes(array("exc"));
 		$form->addItem($exercise_selector);
 		$selected_assignment = array();
 
