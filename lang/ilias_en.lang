@@ -43,6 +43,8 @@ assignment_schedule_start#:#Assignment Start
 assignment_schedule_deadline#:#Assignment Deadline
 assignment_schedule_no_start_time#:#This Assignment doesn't have a Start Time
 assignment_schedule_no_deadline#:#This Assignment doesn't have a Deadline
-not_yet_submitted#:#Not Submitted yet
-not_yet_evaluated#:#Not Evaluated yet
+not_yet_submitted#:#Not yet Submitted
+not_yet_evaluated#:#Not yet Evaluated
 path_to_related_exercise#:#Path to Related Exercise
+re_submit#:#Re-Submit
+submitted#:#Submitted

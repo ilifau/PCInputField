@@ -60,7 +60,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			default:
 				// perform valid commands
 				$cmd = $ilCtrl->getCmd();
-				if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "updateExerciseRefId", "cancel")))
+				if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "updateExerciseRefId", "cancel", "senToExercise")))
 				{
 					$this->$cmd();
 				}
@@ -128,6 +128,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 	 */
 	public function update()
 	{
+
 		global $tpl, $lng, $ilCtrl;
 
 		$form = $this->initForm(true);
@@ -158,7 +159,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 	public function send()
 	{
 		global $tpl;
-
 		$this->setTabs("send");
 		$form = $this->initSendForm();
 		$pg = $this->getPCGUI()->getContentObject()->getPage();
@@ -226,6 +226,12 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		$properties['select_assignment'] = 0;
 		$this->updateElement($properties);
 		$ilCtrl->redirect($this, 'send');
+	}
+
+
+	public function sendToExercise()
+	{
+		exit;
 	}
 
 
@@ -351,6 +357,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		$form->setFormAction($ilCtrl->getFormAction($this));
 
 		return $form;
+
 	}
 
 	/**
@@ -367,23 +374,10 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 		$prop = $this->getProperties();
 
-		//field exercise selector
-//		only ILIAS 5.2
-//		include_once("./Services/Form/classes/class.ilRepositorySelector2InputGUI.php");
-//		$exercise_selector = new ilRepositorySelector2InputGUI($this->txt('select_exercise'), 'select_exercise');
-//		$exercise_selector->getExplorerGUI()->setRootId(1);
-//		//Add types of objects that should be shown
-//		$exercise_selector->getExplorerGUI()->setTypeWhiteList(array_merge(array("exc"), array("root", "cat", "grp", "fold", "crs")));
-//		//Add types of objects that can be selected
-//		$exercise_selector->getExplorerGUI()->setSelectableTypes(array("exc"));
-//		$form->addItem($exercise_selector);
-//		$selected_assignment = array();
-
 		include_once("./Services/Form/classes/class.ilRepositorySelectorInputGUI.php");
 		$exercise_selector = new ilRepositorySelectorInputGUI($this->txt('select_exercise'), 'select_exercise');
 		$exercise_selector->setClickableTypes(array("exc"));
 		$form->addItem($exercise_selector);
-		$selected_assignment = array();
 
 
 		//If exercise is selected, show assigments
@@ -394,6 +388,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
 			$exercise = ilObjectFactory::getInstanceByRefId((int)$prop['select_exercise']);
 			$assignments_list = ilExAssignment::getAssignmentDataOfExercise($exercise->getId());
+			$selected_assignment = null;
 			include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
 			$assignment_selector = new ilSelectInputGUI($this->txt('select_assignment'), "select_assignment");
 
@@ -401,10 +396,14 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			$assignment_array["0"] = $this->txt('no_assignment_selected');
 			foreach ($assignments_list as $assignment)
 			{
-				$assignment_array[$assignment["id"]] = $assignment["title"];
-				if (isset($prop['select_assignment']) AND ((int)$assignment["id"] == (int)$prop['select_assignment']))
+				//Take only those with type 5 "text"
+				if ($assignment["type"] == "5")
 				{
-					$selected_assignment = $assignment;
+					$assignment_array[$assignment["id"]] = $assignment["title"];
+					if (isset($prop['select_assignment']) AND ((int)$assignment["id"] == (int)$prop['select_assignment']))
+					{
+						$selected_assignment = new ilExAssignment((int)$assignment["id"]);
+					}
 				}
 			}
 
@@ -412,55 +411,56 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			$assignment_selector->setValue($prop['select_assignment']);
 
 			$form->addItem($assignment_selector);
+
+			//Schedule information of the selected assignment if exists
+			if (is_a($selected_assignment, 'ilExAssignment'))
+			{
+				//Start time schedule
+				$schedule_start = new ilNonEditableValueGUI($this->txt('assignment_schedule_start'), 'schedule_start_date');
+				if ((int)$selected_assignment->getStartTime())
+				{
+					$start_date = new DateTime();
+					$start_date->setTimestamp((int)$selected_assignment->getStartTime());
+					$schedule_start->setValue($start_date->format('d.m.Y H:i:s'));
+				} else
+				{
+					$schedule_start->setValue($this->txt('assignment_schedule_no_start_time'));
+				}
+
+				//Deadline schedule
+				$schedule_deadline = new ilNonEditableValueGUI($this->txt('assignment_schedule_deadline'), 'schedule_deadline');
+				if ((int)$selected_assignment->getDeadline())
+				{
+					$deadline_date = new DateTime();
+					$deadline_date->setTimestamp((int)$selected_assignment->getDeadline());
+					$schedule_deadline->setValue($deadline_date->format('d.m.Y H:i:s'));
+				} else
+				{
+					$schedule_deadline->setValue($this->txt('assignment_schedule_no_deadline'));
+				}
+
+				//Add hidden timestamp
+				$start_timestamp = new ilHiddenInputGUI('schedule_start_date_timestamp');
+				$start_timestamp->setValue($selected_assignment->getStartTime());
+
+				$deadline_timestamp = new ilHiddenInputGUI('schedule_deadline_timestamp');
+				$deadline_timestamp->setValue($selected_assignment->getDeadline());
+
+				//Path to exercise
+				$link_to_exercise = new ilLocatorGUI();
+				$link_to_exercise->addContextItems($exercise->getRefId());
+				$path_to_exercise = new ilNonEditableValueGUI($this->txt('path_to_related_exercise'), 'path_to_exercise');
+				$path_to_exercise->setInfo($link_to_exercise->getHTML());
+
+				//Add to form
+				$form->addItem($schedule_start);
+				$form->addItem($schedule_deadline);
+				$form->addItem($start_timestamp);
+				$form->addItem($deadline_timestamp);
+				$form->addItem($path_to_exercise);
+			}
 		}
 
-		//Schedule information of the selected assignment
-		if ((int)$prop['select_assignment'])
-		{
-			//Start time schedule
-			$schedule_start = new ilNonEditableValueGUI($this->txt('assignment_schedule_start'), 'schedule_start_date');
-			if ((int)$selected_assignment['start_time'])
-			{
-				$start_date = new DateTime();
-				$start_date->setTimestamp((int)$selected_assignment['start_time']);
-				$schedule_start->setValue($start_date->format('d.m.Y H:i:s'));
-			} else
-			{
-				$schedule_start->setValue($this->txt('assignment_schedule_no_start_time'));
-			}
-
-			//Deadline schedule
-			$schedule_deadline = new ilNonEditableValueGUI($this->txt('assignment_schedule_deadline'), 'schedule_deadline');
-			if ((int)$selected_assignment['deadline'])
-			{
-				$deadline_date = new DateTime();
-				$deadline_date->setTimestamp((int)$selected_assignment['deadline']);
-				$schedule_deadline->setValue($deadline_date->format('d.m.Y H:i:s'));
-			} else
-			{
-				$schedule_deadline->setValue($this->txt('assignment_schedule_no_deadline'));
-			}
-
-			//Add hidden timestamp
-			$start_timestamp = new ilHiddenInputGUI('schedule_start_date_timestamp');
-			$start_timestamp->setValue($selected_assignment['start_time']);
-
-			$deadline_timestamp = new ilHiddenInputGUI('schedule_deadline_timestamp');
-			$deadline_timestamp->setValue($selected_assignment['deadline']);
-
-			//Path to exercise
-			$link_to_exercise = new ilLocatorGUI();
-			$link_to_exercise->addContextItems($exercise->getRefId());
-			$path_to_exercise = new ilNonEditableValueGUI($this->txt('path_to_related_exercise'), 'path_to_exercise');
-			$path_to_exercise->setInfo($link_to_exercise->getHTML());
-
-			//Add to form
-			$form->addItem($schedule_start);
-			$form->addItem($schedule_deadline);
-			$form->addItem($start_timestamp);
-			$form->addItem($deadline_timestamp);
-			$form->addItem($path_to_exercise);
-		}
 
 		// save and cancel commands
 		if ($a_create)
@@ -579,6 +579,9 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 //        $tpl->parseCurrentBlock();
 //        // ---------------------------------------------------
 
+		// set input element(s)
+		$name = rand(0, 9999999);
+
 		if ($a_mode == self::MODE_EDIT)
 		{
 			$tpl->setCurrentBlock('edit');
@@ -598,8 +601,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			$tpl->parseCurrentBlock();
 		}
 
-		// set input element(s)
-		$name = rand(0, 9999999);
+
 		switch ($a_properties['field_type'])
 		{
 			case self::FIELD_TEXT:
@@ -691,73 +693,108 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 				$assignment_array = array();
 				$assignment_array["0"] = $this->txt('no_assignment_selected');
+				$selected_assignment = null;
 				foreach ($assignments_list as $assignment)
 				{
-					$assignment_array[$assignment["id"]] = $assignment["title"];
-					if (isset($a_properties['select_assignment']) AND ((int)$assignment["id"] == (int)$a_properties['select_assignment']))
+					//Take only those with type 5 "text"
+					if ($assignment["type"] == "5")
 					{
-						$selected_assignment = $assignment;
-						break;
+						$assignment_array[$assignment["id"]] = $assignment["title"];
+						if (isset($a_properties['select_assignment']) AND ((int)$assignment["id"] == (int)$a_properties['select_assignment']))
+						{
+							$selected_assignment = new ilExAssignment((int)$assignment["id"]);
+							break;
+						}
 					}
 				}
 
-				$start_date = new DateTime();
-				$start_date->setTimestamp((int)$selected_assignment['start_time']);
-
-				$deadline = new DateTime();
-				$deadline->setTimestamp((int)$selected_assignment['deadline']);
-
-				//Can be sent?
-				if (((time() - (int)$selected_assignment['start_time']) > 0) AND (((int)$selected_assignment['deadline'] - time()) > 0))
+				if (is_a($selected_assignment, 'ilExAssignment'))
 				{
-					$sendable = TRUE;
-				} else
-				{
-					$sendable = FALSE;
-				}
+					$start_date = new DateTime();
+					$start_date->setTimestamp((int)$selected_assignment->getStartTime());
 
-				//Add send button
-				if ($sendable)
-				{
-					$tpl->setCurrentBlock('submission');
-					$tpl->setVariable('VALUE', $lng->txt('send'));
-					$tpl->parseCurrentBlock();
-				}
+					$deadline = new DateTime();
+					$deadline->setTimestamp((int)$selected_assignment->getDeadline());
 
-				//Add br
-				$tpl->setCurrentBlock('schedule');
-				$tpl->setVariable('BR', '<br/><br/>');
-				$tpl->parseCurrentBlock();
+					//Can be sent?
+					if (is_null($selected_assignment->getStartTime()) AND (((int)$selected_assignment->getDeadline() - time()) > 0))
+					{
+						$sendable = TRUE;
+					} elseif (is_null($selected_assignment->getDeadline()) AND ((time() - (int)$selected_assignment->getStartTime()) > 0))
+					{
+						$sendable = TRUE;
+					} elseif (((time() - (int)$selected_assignment->getStartTime()) > 0) AND (((int)$selected_assignment->getDeadline() - time()) > 0))
+					{
+						$sendable = TRUE;
+					} else
+					{
+						$sendable = FALSE;
+					}
 
-				//status
-				if ($sendable)
-				{
-					$tpl->setCurrentBlock('status');
-					$tpl->setVariable('STATUS', $this->plugin->txt('not_yet_submitted'));
-					$tpl->parseCurrentBlock();
-				} else
-				{
-					$tpl->setCurrentBlock('status');
-					$tpl->setVariable('STATUS', $this->plugin->txt('not_yet_evaluated'));
-					$tpl->parseCurrentBlock();
-				}
+					//Is already sent?
+					if ($this->isAlreadySubmitted($selected_assignment->getId()))
+					{
+						if ($sendable)
+						{
+							//Add re-submit button
+							$tpl->setCurrentBlock('submission');
+							$tpl->setVariable('BUTTON_ID', $name . '_' . $selected_assignment->getExerciseId() . '_' . $selected_assignment->getId());
+							$tpl->setVariable('VALUE', $this->plugin->txt('re_submit'));
+							$tpl->setVariable('CMD', 'cmd[sendInput]');
+							$tpl->parseCurrentBlock();
 
-				//Add start date info
-				if ((int)$selected_assignment['start_time'])
-				{
-					$tpl->setCurrentBlock('start_time');
-					$tpl->setVariable('START_DATE', $this->txt('assignment_schedule_start') . ': ');
-					$tpl->setVariable('START_DATE_VALUE', $start_date->format('d.m.Y H:i:s'));
-					$tpl->parseCurrentBlock();
-				}
+							$tpl->setCurrentBlock('status');
+							$tpl->setVariable('NAME', $name);
+							$tpl->setVariable('STATUS', $this->plugin->txt('submitted'));
+							$tpl->parseCurrentBlock();
+						} else
+						{
+							$tpl->setCurrentBlock('status');
+							$tpl->setVariable('NAME', $name);
+							$tpl->setVariable('STATUS', $this->plugin->txt('submitted'));
+							$tpl->parseCurrentBlock();
+						}
+					} else
+					{
+						//Add send button
+						if ($sendable)
+						{
+							$tpl->setCurrentBlock('submission');
+							$tpl->setVariable('BUTTON_ID', $name . '_' . $selected_assignment->getExerciseId() . '_' . $selected_assignment->getId());
+							$tpl->setVariable('VALUE', $lng->txt('submit'));
+							$tpl->setVariable('CMD', 'cmd[sendInput]');
+							$tpl->parseCurrentBlock();
 
-				//add deadline info
-				if ((int)$selected_assignment['deadline'])
-				{
-					$tpl->setCurrentBlock('deadline');
-					$tpl->setVariable('DEADLINE', $this->txt('assignment_schedule_deadline') . ': ');
-					$tpl->setVariable('DEADLINE_VALUE', $deadline->format('d.m.Y H:i:s'));
-					$tpl->parseCurrentBlock();
+							$tpl->setCurrentBlock('status');
+							$tpl->setVariable('NAME', $name);
+							$tpl->setVariable('STATUS', $this->plugin->txt('not_yet_submitted'));
+							$tpl->parseCurrentBlock();
+						} else
+						{
+							$tpl->setCurrentBlock('status');
+							$tpl->setVariable('NAME', $name);
+							$tpl->setVariable('STATUS', $this->plugin->txt('not_yet_submitted'));
+							$tpl->parseCurrentBlock();
+						}
+					}
+
+					//Add start date info
+					if ((int)$selected_assignment->getStartTime())
+					{
+						$tpl->setCurrentBlock('start_time');
+						$tpl->setVariable('START_DATE', $this->txt('assignment_schedule_start') . ': ');
+						$tpl->setVariable('START_DATE_VALUE', $start_date->format('d.m.Y H:i:s'));
+						$tpl->parseCurrentBlock();
+					}
+
+					//add deadline info
+					if ((int)$selected_assignment->getDeadline())
+					{
+						$tpl->setCurrentBlock('deadline');
+						$tpl->setVariable('DEADLINE', $this->txt('assignment_schedule_deadline') . ': ');
+						$tpl->setVariable('DEADLINE_VALUE', $deadline->format('d.m.Y H:i:s'));
+						$tpl->parseCurrentBlock();
+					}
 				}
 			}
 
@@ -847,9 +884,26 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		return $context_id;
 	}
 
-	public function linkToAssignment($existing_properties, $exercise, $assignment)
+	protected function isAlreadySubmitted($assignment_id)
 	{
+		global $ilDB, $ilUser;
 
+		$user_id = $ilUser->getId();
+		$user_ids = array();
+
+		$set = $ilDB->query("SELECT DISTINCT(user_id)" . " FROM exc_returned" . " WHERE ass_id = " . $ilDB->quote($assignment_id, "integer") . " AND user_id = " . $ilDB->quote($user_id, "integer"));
+		while ($row = $ilDB->fetchAssoc($set))
+		{
+			$user_ids[] = $row["user_id"];
+		}
+
+		if (sizeof($user_ids))
+		{
+			return TRUE;
+		} else
+		{
+			return FALSE;
+		}
 	}
 }
 
