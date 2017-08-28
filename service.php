@@ -40,15 +40,9 @@ if (isset($_GET["client_id"]))
     $_COOKIE["ilClientId"] = $_GET["client_id"];
 }
 
-// ICAL context has http, client and user, but no templates, html or redirects
-require_once "Services/Context/classes/class.ilContext.php";
-ilContext::init(ilContext::CONTEXT_ICAL);
-
 require_once("Services/Init/classes/class.ilInitialisation.php");
 ilInitialisation::initILIAS();
 
 require_once (dirname(__FILE__)."/classes/class.ilPCInputFieldService.php");
 $service = new ilPCInputFieldService;
 $service->handleRequest();
-
-?>

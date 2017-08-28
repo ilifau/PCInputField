@@ -1,38 +1,70 @@
 <div class="ilBox {MODE_CLASS}" data-field-type="{FIELD_TYPE}" data-service-url="{SERVICE_URL}">
 
     <!-- BEGIN debug -->
-	{TXT_VERSION}: {VERSION}
-	<br />{TXT_MODE}: {MODE}
-    <br />
-<!-- END debug -->
+    {TXT_VERSION}: {VERSION}
+    <br/>{TXT_MODE}: {MODE}
+    <br/>
+    <!-- END debug -->
 
-<!-- BEGIN prop -->
-	{TXT_PROP} "{PROP_NAME}": {PROP_VAL}<br />
-<!-- END prop -->
+    <!-- BEGIN prop -->
+    {TXT_PROP} "{PROP_NAME}": {PROP_VAL}<br/>
+    <!-- END prop -->
 
-    <p class="pcinfi-loader pull-right small" style="visibility:hidden;">{TXT_SAVING} <img src="{IMG_LOADER}" /></p>
+    <p class="pcinfi-loader pull-right small" style="visibility:hidden;">{TXT_SAVING} <img src="{IMG_LOADER}"/></p>
 
-<!-- BEGIN edit -->
+    <!-- BEGIN edit -->
     <p class="small text-info">{FIELD_NAME} ({FIELD_CONTEXT})</p>
-<!-- END edit -->
+    <!-- END edit -->
 
-<!-- BEGIN text -->
-    <input id="{ID}" name="{NAME}" type="text" size="{SIZE}" maxlength="{MAXLENGTH}" value="{VALUE}" />
-<!-- END text -->
+    <!-- BEGIN text -->
+    <div id="{NAME}">
+        <input id="{ID}" name="{NAME}" type="text" size="{SIZE}" maxlength="{MAXLENGTH}" value="{VALUE}"/>
+    </div>
+    <!-- END text -->
 
-<!-- BEGIN textarea -->
-    <textarea id="{ID}" name="{NAME}" cols="{COLS}" rows="{ROWS}">{VALUE}</textarea>
-<!-- END textarea -->
+    <!-- BEGIN textarea -->
+    <div id="{NAME}">
+        <textarea id="{ID}" name="{NAME}" cols="{COLS}" rows="{ROWS}">{VALUE}</textarea>
+    </div>
+    <!-- END textarea -->
 
-<!-- BEGIN single_choice -->
-    <input id="{ID}" name="{NAME}" type="radio" value="{VALUE}" {CHECKED} /> <label for="{ID}">{VALUE}</label>
-    <br />
-<!-- END single_choice -->
+    <!-- BEGIN single_choice -->
+    <div id="{NAME}">
+        <input id="{ID}" name="{NAME}" type="radio" value="{VALUE}" {CHECKED}/> <label for="{ID}">{VALUE}</label>
+    </div>
+    <!-- END single_choice -->
 
-<!-- BEGIN multi_choice -->
-    <input id="{ID}" name="{NAME}" type="checkbox" value="{VALUE}" {CHECKED} /> <label for="{ID}">{VALUE}</label>
-    <br />
-<!-- END multi_choice -->
+    <!-- BEGIN multi_choice -->
+    <div id="{NAME}">
+        <input id="{ID}" name="{NAME}" type="checkbox" value="{VALUE}" {CHECKED}/> <label for="{ID}">{VALUE}</label>
+    </div>
+    <!-- END multi_choice -->
+
+    <!-- BEGIN submission -->
+    <input class='btn btn-default btn-sm' type="submit" id="{BUTTON_ID}" name="{CMD}" value="{VALUE}">
+    <!-- END submission -->
+
+    <!-- BEGIN schedule -->
+    {BR}
+    <!-- END schedule -->
+
+    <!-- BEGIN status -->
+    <div id="status_{NAME}" class="status">{STATUS}</div>
+    <!-- END status -->
+
+    <!-- BEGIN evaluation -->
+    <div id="evaluation_{NAME}" class="evaluation">{EVALUATION}</div>
+    <!-- END evaluation -->
+
+    <!-- BEGIN start_time -->
+    {START_DATE}{START_DATE_VALUE}
+    <br/>
+    <!-- END start_time -->
+
+    <!-- BEGIN deadline -->
+    {DEADLINE}{DEADLINE_VALUE}
+    <br/>
+    <!-- END deadline -->
 
 </div>
 
