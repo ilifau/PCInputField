@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) 2015 Institut fuer Lern-Innovation, Friedrich-Alexander-Universitaet Erlangen-Nuernberg
+ * Copyright (c) 2017 Institut fuer Lern-Innovation, Friedrich-Alexander-Universitaet Erlangen-Nuernberg
  * GPLv3, see docs/LICENSE
  */
 
@@ -109,7 +109,22 @@ class ilPCInputFieldSend
 		}
 
 		//Check if user is in time to send the field content to the assignment
-		if (!((time() - (int)$assignment->getStartTime()) > 0) OR !(((int)$assignment->getDeadline() - time()) > 0))
+		//Can be sent?
+		if (is_null($assignment->getStartTime()) AND (((int)$assignment->getDeadline() - time()) > 0))
+		{
+			$sendable = TRUE;
+		} elseif (is_null($assignment->getDeadline()) AND ((time() - (int)$assignment->getStartTime()) > 0))
+		{
+			$sendable = TRUE;
+		} elseif (((time() - (int)$assignment->getStartTime()) > 0) AND (((int)$assignment->getDeadline() - time()) > 0))
+		{
+			$sendable = TRUE;
+		} else
+		{
+			$sendable = FALSE;
+		}
+
+		if (!$sendable)
 		{
 			$this->send_status = "ERROR_NOT_IN_TIME";
 			$this->send_message = "ERROR_NOT_IN_TIME";
