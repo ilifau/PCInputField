@@ -35,3 +35,16 @@ saving#:#speichere
 context_page_short#:#Seite
 context_module_short#:#Lernmodul
 context_course_short#:#Kurs
+send_to_exercise#:#An Übung senden
+select_exercise#:#Übung auswählen
+select_assignment#:#Übungseinheit auswählen
+no_assignment_selected#:#Keine Übungseinheit ausgewählt
+assignment_schedule_start#:#Start der Einreichung
+assignment_schedule_deadline#:#Ende der Einreichung
+assignment_schedule_no_start_time#:#Diese Übungseinheit hat keine Startzeit
+assignment_schedule_no_deadline#:#Diese Übungseinheit hat keine Einreichungsfrist
+not_yet_submitted#:#Noch nicht eingereicht
+not_yet_evaluated#:#Noch nicht bewertet
+path_to_related_exercise#:#Pfad zur Übung
+re_submit#:#Einreichung aktualisieren
+submitted#:#Eingereicht
