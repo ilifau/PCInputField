@@ -71,8 +71,7 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 	 */
 	function getJavascriptFiles($a_mode = '')
 	{
-        //return array();
-		return array("js/pcinfi.js");
+		return array();
 	}
 	
 	/**

@@ -46,5 +46,7 @@ assignment_schedule_no_deadline#:#This Assignment doesn't have a Deadline
 not_yet_submitted#:#Not yet Submitted
 not_yet_evaluated#:#Not yet Evaluated
 path_to_related_exercise#:#Path to Related Exercise
+submit#:#Submit
 re_submit#:#Re-Submit
 submitted#:#Submitted
+submit_success#:#Your submission is saved.

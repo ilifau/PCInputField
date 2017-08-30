@@ -72,7 +72,7 @@ class ilPCInputFieldSend
 		$obj->field_name = $field_name;
 		$obj->field_type = $field_type;
 		$obj->exercise_id = (int)$exercise_id;
-		$obj->assignment_id = (int)$assignment_id;
+		$obj->assignment_id = (int) $assignment_id;
 
 		return $obj;
 	}
@@ -132,12 +132,36 @@ class ilPCInputFieldSend
 			return false;
 		}
 
+		// add the user to the exercise
+		include_once('Modules/Exercise/classes/class.ilObjExercise.php');
+		$exercise = new ilObjExercise($this->exercise_id, false);
+		$members = $exercise->members_obj;
+		if (!$members->isAssigned($this->user_id))
+		{
+			$exc_set = new ilSetting("excs");
+			$old = $exc_set->get("add_to_pd", true);
+			$exc_set->set('add_to_pd', false);
+			$members->assignMember($this->user_id);
+			$exc_set->set('add_to_pd', $old);
+		}
+
 		//Create or update submission
 		include_once('./Modules/Exercise/classes/class.ilExSubmission.php');
 		$exc_submission = new ilExSubmission($assignment, $this->user_id);
 		$exc_submission->updateTextSubmission($this->field_value);
 
-		return true;
+
+		//@see ilExSubmissionBaseGUI::handleNewUpload()
+		$exercise->processExerciseStatus(
+			$assignment,
+			array($this->user_id),
+			true);
+
+
+		// return the date and time of the submission
+		$submit_time_raw = $exc_submission->getLastSubmission();
+		$submit_time = ($submit_time_raw ? new ilDateTime($submit_time_raw, IL_CAL_DATETIME) : '');
+		return ilDatePresentation::formatDate($submit_time);
 	}
 
 } 

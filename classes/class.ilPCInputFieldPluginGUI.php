@@ -116,8 +116,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 		$this->setTabs("edit");
 		$form = $this->initForm();
-		$pg = $this->getPCGUI()->getContentObject()->getPage();
-		$tpl->setContent($html . $form->getHTML());
+		$tpl->setContent($form->getHTML());
 	}
 
 	/**
@@ -161,8 +160,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		global $tpl;
 		$this->setTabs("send");
 		$form = $this->initSendForm();
-		$pg = $this->getPCGUI()->getContentObject()->getPage();
-		$tpl->setContent($html . $form->getHTML());
+		$tpl->setContent($form->getHTML());
 	}
 
 	/**
@@ -513,6 +511,15 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 	}
 
 
+	protected function getJSTexts()
+	{
+		return array(
+			'submitted' => $this->plugin->txt('submitted'),
+			're_submit' =>  $this->plugin->txt('re_submit'),
+			'submit_success' => $this->plugin->txt('submit_success')
+		);
+	}
+
 	/**
 	 * Get HTML for element
 	 *
@@ -521,7 +528,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 	 */
 	public function getElementHTML($a_mode, array $a_properties, $a_plugin_version)
 	{
-		global $ilCtrl, $ilUser, $lng;
+		global $ilCtrl, $ilUser, $lng, $tpl;
 
 		// determine the context
 		$context_type = $a_properties['field_context'];
@@ -535,18 +542,24 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			try
 			{
 				$value = (array)unserialize($valObj->field_value);
-			} catch (Exception $e)
+			} 
+			catch (Exception $e)
 			{
 				$value = array();
 			}
-		} else
+		} 
+		else
 		{
 			$value = $valObj->field_value;
 		}
 
 
-		$tpl = $this->getPlugin()->getTemplate("tpl.content.html");
+		// adding the javascript here as url allows to add the plugin versio nas parameter
+		// increase the plugin version number with each change in the javascript file
+		$tpl->addJavaScript(ILIAS_HTTP_PATH . '/'.$this->plugin->getDirectory().'/js/pcinfi.js?plugin_version='.$this->plugin->getVersion());
+		$tpl->addOnLoadCode('il.PCInputField.init('.json_encode($this->getJSTexts()).');');
 
+		$ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
 
 
 //        // debugging output -----------------------------------
@@ -561,18 +574,18 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 //
 //        foreach ($a_properties as $name => $property)
 //        {
-//            $tpl->setCurrentBlock("prop");
-//            $tpl->setVariable("TXT_PROP", $this->getPlugin()->txt("property"));
-//            $tpl->setVariable("PROP_NAME", $name);
-//            $tpl->setVariable("PROP_VAL", $property);
-//            $tpl->parseCurrentBlock();
+//            $ctpl->setCurrentBlock("prop");
+//            $ctpl->setVariable("TXT_PROP", $this->getPlugin()->txt("property"));
+//            $ctpl->setVariable("PROP_NAME", $name);
+//            $ctpl->setVariable("PROP_VAL", $property);
+//            $ctpl->parseCurrentBlock();
 //        }
-//        $tpl->setCurrentBlock("debug");
-//        $tpl->setVariable("TXT_VERSION", $this->getPlugin()->txt("content_plugin_version"));
-//        $tpl->setVariable("TXT_MODE", $this->getPlugin()->txt("mode"));
-//        $tpl->setVariable("VERSION", $a_plugin_version);
-//        $tpl->setVariable("MODE", $a_mode);
-//        $tpl->parseCurrentBlock();
+//        $ctpl->setCurrentBlock("debug");
+//        $ctpl->setVariable("TXT_VERSION", $this->getPlugin()->txt("content_plugin_version"));
+//        $ctpl->setVariable("TXT_MODE", $this->getPlugin()->txt("mode"));
+//        $ctpl->setVariable("VERSION", $a_plugin_version);
+//        $ctpl->setVariable("MODE", $a_mode);
+//        $ctpl->parseCurrentBlock();
 //        // ---------------------------------------------------
 
 		// set input element(s)
@@ -580,44 +593,44 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 		if ($a_mode == self::MODE_EDIT)
 		{
-			$tpl->setCurrentBlock('edit');
-			$tpl->setVariable('FIELD_NAME', $a_properties['field_name']);
+			$ctpl->setCurrentBlock('edit');
+			$ctpl->setVariable('FIELD_NAME', $a_properties['field_name']);
 			switch ($a_properties['field_context'])
 			{
 				case self::CONTEXT_PAGE:
-					$tpl->setVariable('FIELD_CONTEXT', $this->txt('context_page_short'));
+					$ctpl->setVariable('FIELD_CONTEXT', $this->txt('context_page_short'));
 					break;
 				case self::CONTEXT_MODULE:
-					$tpl->setVariable('FIELD_CONTEXT', $this->txt('context_module_short'));
+					$ctpl->setVariable('FIELD_CONTEXT', $this->txt('context_module_short'));
 					break;
 				case self::CONTEXT_COURSE:
-					$tpl->setVariable('FIELD_CONTEXT', $this->txt('context_course_short'));
+					$ctpl->setVariable('FIELD_CONTEXT', $this->txt('context_course_short'));
 					break;
 			}
-			$tpl->parseCurrentBlock();
+			$ctpl->parseCurrentBlock();
 		}
 
 
 		switch ($a_properties['field_type'])
 		{
 			case self::FIELD_TEXT:
-				$tpl->setCurrentBlock('text');
-				$tpl->setVariable('ID', rand(0, 9999999));
-				$tpl->setVariable('NAME', $name);
-				$tpl->setVariable('SIZE', $a_properties['field_size']);
-				$tpl->setVariable('MAXLENGTH', $a_properties['field_maxlength']);
-				$tpl->setVariable('VALUE', ilUtil::prepareFormOutput($value));
-				$tpl->parseCurrentBlock();
+				$ctpl->setCurrentBlock('text');
+				$ctpl->setVariable('ID', rand(0, 9999999));
+				$ctpl->setVariable('NAME', $name);
+				$ctpl->setVariable('SIZE', $a_properties['field_size']);
+				$ctpl->setVariable('MAXLENGTH', $a_properties['field_maxlength']);
+				$ctpl->setVariable('VALUE', ilUtil::prepareFormOutput($value));
+				$ctpl->parseCurrentBlock();
 				break;
 
 			case self::FIELD_TEXTAREA:
-				$tpl->setCurrentBlock('textarea');
-				$tpl->setVariable('ID', rand(0, 9999999));
-				$tpl->setVariable('NAME', $name);
-				$tpl->setVariable('COLS', $a_properties['field_cols']);
-				$tpl->setVariable('ROWS', $a_properties['field_rows']);
-				$tpl->setVariable('VALUE', ilUtil::prepareFormOutput($value));
-				$tpl->parseCurrentBlock();
+				$ctpl->setCurrentBlock('textarea');
+				$ctpl->setVariable('ID', rand(0, 9999999));
+				$ctpl->setVariable('NAME', $name);
+				$ctpl->setVariable('COLS', $a_properties['field_cols']);
+				$ctpl->setVariable('ROWS', $a_properties['field_rows']);
+				$ctpl->setVariable('VALUE', ilUtil::prepareFormOutput($value));
+				$ctpl->parseCurrentBlock();
 				break;
 
 			case self::FIELD_SELECT:
@@ -627,27 +640,27 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 					switch ($a_properties['select_type'])
 					{
 						case self::SELECT_SINGLE:
-							$tpl->setCurrentBlock('single_choice');
-							$tpl->setVariable('ID', rand(0, 9999999));
-							$tpl->setVariable('NAME', $name);
-							$tpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
+							$ctpl->setCurrentBlock('single_choice');
+							$ctpl->setVariable('ID', rand(0, 9999999));
+							$ctpl->setVariable('NAME', $name);
+							$ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
 							if ($choice == $value)
 							{
-								$tpl->setVariable('CHECKED', 'checked="checked"');
+								$ctpl->setVariable('CHECKED', 'checked="checked"');
 							}
-							$tpl->parseCurrentBlock();
+							$ctpl->parseCurrentBlock();
 							break;
 
 						case self::SELECT_MULTI:
-							$tpl->setCurrentBlock('multi_choice');
-							$tpl->setVariable('ID', rand(0, 9999999));
-							$tpl->setVariable('NAME', $name);
-							$tpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
+							$ctpl->setCurrentBlock('multi_choice');
+							$ctpl->setVariable('ID', rand(0, 9999999));
+							$ctpl->setVariable('NAME', $name);
+							$ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
 							if (in_array($choice, (array)$value))
 							{
-								$tpl->setVariable('CHECKED', 'checked="checked"');
+								$ctpl->setVariable('CHECKED', 'checked="checked"');
 							}
-							$tpl->parseCurrentBlock();
+							$ctpl->parseCurrentBlock();
 							break;
 					}
 				}
@@ -661,18 +674,18 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			case self::MODE_PRESENTATION:
 				$service_url = ILIAS_HTTP_PATH . '/' . $this->getPlugin()->getDirectory() . '/service.php' . '?client_id=' . CLIENT_ID . '&amp;ref_id=' . (int)$_GET['ref_id'] . '&amp;context_type=' . urlencode($context_type) . '&amp;context_id=' . urlencode($context_id) . '&amp;field_name=' . urlencode($a_properties['field_name']) . '&amp;field_type=' . urlencode($a_properties['field_type']) . '&amp;select_type=' . urlencode($a_properties['select_type']);
 
-				$tpl->setVariable('MODE_CLASS', 'ilPCInputFieldActive');
-				$tpl->setVariable('SERVICE_URL', $service_url);
-				$tpl->setVariable('FIELD_TYPE', $a_properties['field_type']);
+				$ctpl->setVariable('MODE_CLASS', 'ilPCInputFieldActive');
+				$ctpl->setVariable('SERVICE_URL', $service_url);
+				$ctpl->setVariable('FIELD_TYPE', $a_properties['field_type']);
 
-				$tpl->setVariable('TXT_SAVING', $this->txt('saving'));
-				$tpl->setVariable('IMG_LOADER', ilUtil::getImagePath("loader.svg"));
+				$ctpl->setVariable('TXT_SAVING', $this->txt('saving'));
+				$ctpl->setVariable('IMG_LOADER', ilUtil::getImagePath("loader.svg"));
 				break;
 
 			case self::MODE_EDIT:
 			case self::MODE_OFFLINE:
 			case self::MODE_PRINT:
-				$tpl->setVariable('MODE_CLASS', 'ilPCInputFieldInactive');
+				$ctpl->setVariable('MODE_CLASS', 'ilPCInputFieldInactive');
 				break;
 
 		}
@@ -706,11 +719,11 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 				if (is_a($selected_assignment, 'ilExAssignment'))
 				{
-					$start_date = new DateTime();
-					$start_date->setTimestamp((int)$selected_assignment->getStartTime());
+					$start_date = new ilDateTime($selected_assignment->getStartTime(), IL_CAL_UNIX);
+					$deadline = new ilDateTime($selected_assignment->getDeadline(), IL_CAL_UNIX);
 
-					$deadline = new DateTime();
-					$deadline->setTimestamp((int)$selected_assignment->getDeadline());
+					$submit_time_raw = $this->getLastSubmission($selected_assignment);
+					$submit_time = ($submit_time_raw ? new ilDateTime($submit_time_raw, IL_CAL_DATETIME) : '');
 
 					//Can be sent?
 					if (is_null($selected_assignment->getStartTime()) AND (((int)$selected_assignment->getDeadline() - time()) > 0))
@@ -727,81 +740,52 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 						$sendable = FALSE;
 					}
 
-					//Is already sent?
-					if ($this->isAlreadySubmitted($selected_assignment->getId()))
-					{
-						if ($sendable)
-						{
-							//Add re-submit button
-							$tpl->setCurrentBlock('submission');
-							$tpl->setVariable('BUTTON_ID', $name . '_' . $selected_assignment->getExerciseId() . '_' . $selected_assignment->getId());
-							$tpl->setVariable('VALUE', $this->plugin->txt('re_submit'));
-							$tpl->setVariable('CMD', 'cmd[sendInput]');
-							$tpl->parseCurrentBlock();
 
-							$tpl->setCurrentBlock('status');
-							$tpl->setVariable('NAME', $name);
-							$tpl->setVariable('STATUS', $this->plugin->txt('submitted'));
-							$tpl->parseCurrentBlock();
-						} else
-						{
-							$tpl->setCurrentBlock('status');
-							$tpl->setVariable('NAME', $name);
-							$tpl->setVariable('STATUS', $this->plugin->txt('submitted'));
-							$tpl->parseCurrentBlock();
-						}
-					} else
+					if ($sendable)
 					{
-						//Add send button
-						if ($sendable)
-						{
-							$tpl->setCurrentBlock('submission');
-							$tpl->setVariable('BUTTON_ID', $name . '_' . $selected_assignment->getExerciseId() . '_' . $selected_assignment->getId());
-							$tpl->setVariable('VALUE', $lng->txt('submit'));
-							$tpl->setVariable('CMD', 'cmd[sendInput]');
-							$tpl->parseCurrentBlock();
-
-							$tpl->setCurrentBlock('status');
-							$tpl->setVariable('NAME', $name);
-							$tpl->setVariable('STATUS', $this->plugin->txt('not_yet_submitted'));
-							$tpl->parseCurrentBlock();
-						} else
-						{
-							$tpl->setCurrentBlock('status');
-							$tpl->setVariable('NAME', $name);
-							$tpl->setVariable('STATUS', $this->plugin->txt('not_yet_submitted'));
-							$tpl->parseCurrentBlock();
-						}
+						//Add (re-)submit button
+						$ctpl->setCurrentBlock('submission');
+						$ctpl->setVariable('BUTTON_ID', $name . '_' . $selected_assignment->getExerciseId() . '_' . $selected_assignment->getId());
+						$ctpl->setVariable('VALUE', $this->plugin->txt($submit_time_raw ? 're_submit' : 'submit'));
+						$ctpl->setVariable('CMD', 'cmd[sendInput]');
+						$ctpl->parseCurrentBlock();
 					}
+
+					// show status
+					$ctpl->setCurrentBlock('status');
+					$ctpl->setVariable('NAME', $name);
+					$ctpl->setVariable('STATUS', $this->plugin->txt($submit_time_raw ? 'submitted' : 'not_yet_submitted'));
+					if ($submit_time_raw)
+					{
+						$ctpl->setVariable('TIME', ilDatePresentation::formatDate($submit_time));
+
+					}
+					$ctpl->parseCurrentBlock();
+
 
 					//Add start date info
 					if ((int)$selected_assignment->getStartTime())
 					{
-						$tpl->setCurrentBlock('start_time');
-						$tpl->setVariable('START_DATE', $this->plugin->txt('assignment_schedule_start') . ': ');
-						$tpl->setVariable('START_DATE_VALUE', $start_date->format('d.m.Y H:i:s'));
-						$tpl->parseCurrentBlock();
+						$ctpl->setCurrentBlock('start_time');
+						$ctpl->setVariable('START_DATE', $this->plugin->txt('assignment_schedule_start') . ': ');
+						$ctpl->setVariable('START_DATE_VALUE', ilDatePresentation::formatDate($start_date));
+						$ctpl->parseCurrentBlock();
 					}
 
 					//add deadline info
 					if ((int)$selected_assignment->getDeadline())
 					{
-						$tpl->setCurrentBlock('deadline');
-						$tpl->setVariable('DEADLINE', $this->plugin->txt('assignment_schedule_deadline') . ': ');
-						$tpl->setVariable('DEADLINE_VALUE', $deadline->format('d.m.Y H:i:s'));
-						$tpl->parseCurrentBlock();
+						$ctpl->setCurrentBlock('deadline');
+						$ctpl->setVariable('DEADLINE', $this->plugin->txt('assignment_schedule_deadline') . ': ');
+						$ctpl->setVariable('DEADLINE_VALUE', ilDatePresentation::formatDate($deadline));
+						$ctpl->parseCurrentBlock();
 					}
-
-					$tpl->setCurrentBlock('textvars');
-					$tpl->setVariable('NAME', $name);
-					$tpl->setVariable('TEXT_SUBMITTED', $this->plugin->txt('submitted'));
-					$tpl->setVariable('BUTTON_RESUBMIT', $this->plugin->txt('re_submit'));
-					$tpl->parseCurrentBlock();
 				}
 			}
 
 		}
-		return $tpl->get();
+
+		return $ctpl->get();
 	}
 
 
@@ -904,6 +888,17 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		{
 			return FALSE;
 		}
+	}
+
+
+	protected function getLastSubmission($assignmentObject)
+	{
+		global $ilUser;
+
+		require_once('Modules/Exercise/classes/class.ilExSubmission.php');
+		$subObj = new ilExSubmission($assignmentObject, $ilUser->getId());
+
+		return $subObj->getLastSubmission();
 	}
 }
 

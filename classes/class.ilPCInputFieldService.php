@@ -143,10 +143,13 @@ class ilPCInputFieldService
 		}
 
 		//Send the input to exercise assignment
-		if ($sendObj->send())
+		if ($submit_time_str = $sendObj->send())
 		{
-			//TODO don't really know which should be the message but if not 1 got javascript alert
-			$this->respondHTTP(200, json_encode(1));
+			$this->respondHTTP(200, json_encode(array('submit_time_str' => $submit_time_str)));
+		}
+		else
+		{
+			$this->respondHTTP(500);
 		}
 	}
 

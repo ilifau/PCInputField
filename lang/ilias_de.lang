@@ -46,5 +46,7 @@ assignment_schedule_no_deadline#:#Diese Übungseinheit hat keine Einreichungsfri
 not_yet_submitted#:#Noch nicht eingereicht
 not_yet_evaluated#:#Noch nicht bewertet
 path_to_related_exercise#:#Pfad zur Übung
+submit#:#Einreichen
 re_submit#:#Einreichung aktualisieren
 submitted#:#Eingereicht
+submit_success#:#Ihre Einreichung wurde übernommen.
