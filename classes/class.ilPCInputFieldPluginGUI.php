@@ -60,7 +60,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			default:
 				// perform valid commands
 				$cmd = $ilCtrl->getCmd();
-				if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "updateExerciseRefId", "cancel", "senToExercise")))
+				if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "updateExerciseRefId", "cancel")))
 				{
 					$this->$cmd();
 				}
@@ -226,12 +226,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		$properties['select_assignment'] = 0;
 		$this->updateElement($properties);
 		$ilCtrl->redirect($this, 'send');
-	}
-
-
-	public function sendToExercise()
-	{
-		exit;
 	}
 
 
@@ -553,6 +547,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 		$tpl = $this->getPlugin()->getTemplate("tpl.content.html");
 
+
+
 //        // debugging output -----------------------------------
 //        $a_properties['context_type'] = $context_type;
 //        $a_properties['context_id'] = $context_id;
@@ -782,7 +778,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 					if ((int)$selected_assignment->getStartTime())
 					{
 						$tpl->setCurrentBlock('start_time');
-						$tpl->setVariable('START_DATE', $this->txt('assignment_schedule_start') . ': ');
+						$tpl->setVariable('START_DATE', $this->plugin->txt('assignment_schedule_start') . ': ');
 						$tpl->setVariable('START_DATE_VALUE', $start_date->format('d.m.Y H:i:s'));
 						$tpl->parseCurrentBlock();
 					}
@@ -791,16 +787,20 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 					if ((int)$selected_assignment->getDeadline())
 					{
 						$tpl->setCurrentBlock('deadline');
-						$tpl->setVariable('DEADLINE', $this->txt('assignment_schedule_deadline') . ': ');
+						$tpl->setVariable('DEADLINE', $this->plugin->txt('assignment_schedule_deadline') . ': ');
 						$tpl->setVariable('DEADLINE_VALUE', $deadline->format('d.m.Y H:i:s'));
 						$tpl->parseCurrentBlock();
 					}
+
+					$tpl->setCurrentBlock('textvars');
+					$tpl->setVariable('NAME', $name);
+					$tpl->setVariable('TEXT_SUBMITTED', $this->plugin->txt('submitted'));
+					$tpl->setVariable('BUTTON_RESUBMIT', $this->plugin->txt('re_submit'));
+					$tpl->parseCurrentBlock();
 				}
 			}
 
 		}
-
-
 		return $tpl->get();
 	}
 
