@@ -24,7 +24,6 @@ $(function () {
 		self.changes = 0;		// unsaved changed in text fields or text areas
 		self.maxChanges = 10;	// maximum unsaved changes
 
-
 		/**
 		 * Initialisation
 		 */
@@ -172,6 +171,9 @@ $(function () {
 				assignment: assignment_id
 			};
 
+			var text_submitted = $("#text_submitted_" + input_name).html();
+			var button_resubmit = $("#button_resubmit_"+ input_name).html();
+
 			$.ajax({
 				type: 'POST',		// always use POST for the api
 				url: url,			// sync api url
@@ -187,16 +189,17 @@ $(function () {
 					}
 				})
 
-				.done(function (data) {
+				.done(function () {
 					self.savings--;
 					if (self.savings <= 0) {
 						field.parent().find('.pcinfi-loader').css('visibility', 'hidden');
 					}
 
 					//Change status to submitted
-					$('#status_' + input_name).html('Submitted');
+					$('#status_' + input_name).html(text_submitted);
+
 					//Change send button to re-submit
-					$('input#' + input_name + '_' + exercise_id + '_' + assignment_id).attr('value', 'Re-Submit');
+					$('input#' + input_name + '_' + exercise_id + '_' + assignment_id).attr('value', button_resubmit);
 				});
 		}
 	};
