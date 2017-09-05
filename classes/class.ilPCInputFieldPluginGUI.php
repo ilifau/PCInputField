@@ -513,11 +513,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 	protected function getJSTexts()
 	{
-		return array(
-			'submitted' => $this->plugin->txt('submitted'),
-			're_submit' =>  $this->plugin->txt('re_submit'),
-			'submit_success' => $this->plugin->txt('submit_success')
-		);
+		return array('submitted' => $this->plugin->txt('submitted'), 're_submit' => $this->plugin->txt('re_submit'), 'submit_success' => $this->plugin->txt('submit_success'));
 	}
 
 	/**
@@ -542,13 +538,11 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			try
 			{
 				$value = (array)unserialize($valObj->field_value);
-			} 
-			catch (Exception $e)
+			} catch (Exception $e)
 			{
 				$value = array();
 			}
-		} 
-		else
+		} else
 		{
 			$value = $valObj->field_value;
 		}
@@ -556,8 +550,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 		// adding the javascript here as url allows to add the plugin versio nas parameter
 		// increase the plugin version number with each change in the javascript file
-		$tpl->addJavaScript(ILIAS_HTTP_PATH . '/'.$this->plugin->getDirectory().'/js/pcinfi.js?plugin_version='.$this->plugin->getVersion());
-		$tpl->addOnLoadCode('il.PCInputField.init('.json_encode($this->getJSTexts()).');');
+		$tpl->addJavaScript(ILIAS_HTTP_PATH . '/' . $this->plugin->getDirectory() . '/js/pcinfi.js?plugin_version=' . $this->plugin->getVersion());
+		$tpl->addOnLoadCode('il.PCInputField.init(' . json_encode($this->getJSTexts()) . ');');
 
 		$ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
 
@@ -749,6 +743,12 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 						$ctpl->setVariable('VALUE', $this->plugin->txt($submit_time_raw ? 're_submit' : 'submit'));
 						$ctpl->setVariable('CMD', 'cmd[sendInput]');
 						$ctpl->parseCurrentBlock();
+
+						//Add confirmation Modal if sendable but keep it hidden
+						$ctpl->setCurrentBlock('confirmation');
+						$ctpl->setVariable('NAME', $name);
+						$ctpl->setVariable('CONFIRMATION_MODAL', $this->getConfirmationModal($name));
+						$ctpl->parseCurrentBlock();
 					}
 
 					// show status
@@ -780,6 +780,15 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 						$ctpl->setVariable('DEADLINE_VALUE', ilDatePresentation::formatDate($deadline));
 						$ctpl->parseCurrentBlock();
 					}
+/*
+					//add evaluation info
+					$eval = $selected_assignment->getMemberStatus()->getStatus();
+					$pic = $selected_assignment->getMemberStatus()->getStatusIcon();
+					$ctpl->setCurrentBlock('evaluation');
+					$ctpl->setVariable('IMG_EVAL', ilUtil::getImagePath($pic));
+					$ctpl->setVariable('EVALUATION', $lng->txt("exc_" . $eval), true);
+					$ctpl->setVariable('NAME', $name);
+					$ctpl->parseCurrentBlock();*/
 				}
 			}
 
@@ -899,6 +908,38 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		$subObj = new ilExSubmission($assignmentObject, $ilUser->getId());
 
 		return $subObj->getLastSubmission();
+	}
+
+	protected function getConfirmationModal($name)
+	{
+		require_once 'Services/UIComponent/Modal/classes/class.ilModalGUI.php';
+
+		$tpl = new ilTemplate('./Customizing/global/plugins/Services/COPage/PageComponent/PCInputField/templates/tpl.confirm.html', true, true);
+
+		$button = ilLinkButton::getInstance();
+		$button->setId('pcinfi_send_button');
+		$button->setUrl('#');
+		$button->setCaption($this->txt("submit"), false);
+		$button->setPrimary(true);
+		$tpl->setCurrentBlock('buttons');
+		$tpl->setVariable('BUTTON', $button->render());
+		$tpl->parseCurrentBlock();
+
+		$button = ilLinkButton::getInstance();
+		$button->setId('pcinfi_cancel_button');
+		$button->setUrl('#');
+		$button->setCaption('cancel');
+		$button->setPrimary(false);
+		$tpl->setCurrentBlock('buttons');
+		$tpl->setVariable('BUTTON', $button->render());
+		$tpl->parseCurrentBlock();
+
+		$modal = ilModalGUI::getInstance();
+		$modal->setId('pcinfi_' . $name . '_confirmation');
+		$modal->setHeading($this->txt('save_on_navigation'));
+		$modal->setBody($tpl->get());
+
+		return $modal->getHTML();
 	}
 }
 
