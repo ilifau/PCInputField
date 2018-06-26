@@ -375,11 +375,13 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		//If exercise is selected, show assigments
 		if ((int)$prop['select_exercise'] > 0)
 		{
-			$exercise_selector->setValue($prop['select_exercise']);
+			$ex_ref_id = (int)$prop['select_exercise'];
+			$ex_obj_id = ilObject::_lookupObjectId($ex_ref_id);
+
+			$exercise_selector->setValue($ex_ref_id);
 
 			include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
-			$exercise = ilObjectFactory::getInstanceByRefId((int)$prop['select_exercise']);
-			$assignments_list = ilExAssignment::getAssignmentDataOfExercise($exercise->getId());
+			$assignments_list = ilExAssignment::getAssignmentDataOfExercise($ex_obj_id);
 			$selected_assignment = null;
 			include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
 			$assignment_selector = new ilSelectInputGUI($this->txt('select_assignment'), "select_assignment");
@@ -440,7 +442,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 				//Path to exercise
 				$link_to_exercise = new ilLocatorGUI();
-				$link_to_exercise->addContextItems($exercise->getRefId());
+				$link_to_exercise->addContextItems($ex_ref_id);
 				$path_to_exercise = new ilNonEditableValueGUI($this->txt('path_to_related_exercise'), 'path_to_exercise');
 				$path_to_exercise->setInfo($link_to_exercise->getHTML());
 
@@ -690,8 +692,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			if ((int)$a_properties['select_exercise'] AND (int)$a_properties['select_assignment'])
 			{
 				include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
-				$exercise = ilObjectFactory::getInstanceByRefId((int)$a_properties['select_exercise']);
-				$assignments_list = ilExAssignment::getAssignmentDataOfExercise($exercise->getId());
+				$obj_id = ilObject::_lookupObjId($a_properties['select_exercise']);
+				$assignments_list = ilExAssignment::getAssignmentDataOfExercise($obj_id);
 				include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
 
 				$assignment_array = array();
