@@ -369,6 +369,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		include_once("./Services/Form/classes/class.ilRepositorySelectorInputGUI.php");
 		$exercise_selector = new ilRepositorySelectorInputGUI($this->txt('select_exercise'), 'select_exercise');
 		$exercise_selector->setClickableTypes(array("exc"));
+		$exercise_selector->setHeaderMessage($this->plugin->txt('send_to_exercise'));
 		$form->addItem($exercise_selector);
 
 
