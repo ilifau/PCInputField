@@ -631,12 +631,16 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 			case self::FIELD_SELECT:
 				$choices = (array)unserialize($a_properties['select_choices']);
-				foreach ($choices as $choice)
+                $ctpl->setCurrentBlock('single_choice');
+                $ctpl->setVariable('NAME', $name);
+                $ctpl->parseCurrentBlock();
+
+                foreach ($choices as $choice)
 				{
 					switch ($a_properties['select_type'])
 					{
 						case self::SELECT_SINGLE:
-							$ctpl->setCurrentBlock('single_choice');
+							$ctpl->setCurrentBlock('single_choice_options');
 							$ctpl->setVariable('ID', rand(0, 9999999));
 							$ctpl->setVariable('NAME', $name);
 							$ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
@@ -660,6 +664,9 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 							break;
 					}
 				}
+                $ctpl->setCurrentBlock('single_choice');
+                $ctpl->parseCurrentBlock();
+
 				break;
 		}
 
