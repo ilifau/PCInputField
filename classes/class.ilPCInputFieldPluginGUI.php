@@ -369,7 +369,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		include_once("./Services/Form/classes/class.ilRepositorySelectorInputGUI.php");
 		$exercise_selector = new ilRepositorySelectorInputGUI($this->txt('select_exercise'), 'select_exercise');
 		$exercise_selector->setClickableTypes(array("exc"));
-		$exercise_selector->setHeaderMessage($this->plugin->txt('send_to_exercise'));
 		$form->addItem($exercise_selector);
 
 
@@ -553,17 +552,11 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 		// adding the javascript here as url allows to add the plugin versio nas parameter
 		// increase the plugin version number with each change in the javascript file
-        if ($a_mode == self::MODE_PRESENTATION) {
-            $tpl->addJavaScript(ILIAS_HTTP_PATH . '/' . $this->plugin->getDirectory() . '/js/pcinfi.js?plugin_version=' . $this->plugin->getVersion());
-            $tpl->addOnLoadCode('il.PCInputField.init(' . json_encode($this->getJSTexts()) . ');');
+		$tpl->addJavaScript(ILIAS_HTTP_PATH . '/' . $this->plugin->getDirectory() . '/js/pcinfi.js?plugin_version=' . $this->plugin->getVersion());
+		$tpl->addOnLoadCode('il.PCInputField.init(' . json_encode($this->getJSTexts()) . ');');
 
-            $ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
+		$ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
 
-            $ctpl->setCurrentBlock('loader');
-            $ctpl->setVariable('TXT_SAVING', $this->txt('saving'));
-            $ctpl->setVariable('IMG_LOADER', ilUtil::getImagePath("loader.svg"));
-            $ctpl->parseCurrentBlock();
-        }
 
 //        // debugging output -----------------------------------
 //        $a_properties['context_type'] = $context_type;
@@ -613,15 +606,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			$ctpl->parseCurrentBlock();
 		}
 
-        if ($a_mode == self::MODE_PRINT && ($a_properties['field_type'] == self::FIELD_TEXT || $a_properties['field_type'] == self::FIELD_TEXTAREA))
-        {
-            $ctpl->setCurrentBlock('printtext');
-            $ctpl->setVariable('NAME', $name);
-            $ctpl->setVariable('VALUE', ilUtil::prepareFormOutput($value));
-            $ctpl->parseCurrentBlock();
-        }
-        else
-        {
+
 		switch ($a_properties['field_type'])
 		{
 			case self::FIELD_TEXT:
@@ -650,12 +635,12 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 $ctpl->setVariable('NAME', $name);
                 $ctpl->parseCurrentBlock();
 
-				foreach ($choices as $choice)
+                foreach ($choices as $choice)
 				{
 					switch ($a_properties['select_type'])
 					{
 						case self::SELECT_SINGLE:
-							$ctpl->setCurrentBlock('single_choice');
+							$ctpl->setCurrentBlock('single_choice_options');
 							$ctpl->setVariable('ID', rand(0, 9999999));
 							$ctpl->setVariable('NAME', $name);
 							$ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
@@ -684,8 +669,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 				break;
 		}
-        }
-
 
 		// set wrapping div
 		switch ($a_mode)
@@ -704,12 +687,10 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 			case self::MODE_EDIT:
 			case self::MODE_OFFLINE:
+			case self::MODE_PRINT:
 				$ctpl->setVariable('MODE_CLASS', 'ilPCInputFieldInactive');
 				break;
 
-            case self::MODE_PRINT:
-                $ctpl->setVariable('MODE_CLASS', 'ilPCInputFieldInactive ilc_section_Block');
-                break;
 		}
 
 		//Exercise related fields
@@ -842,8 +823,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 		// id of the parent course (should be calculated only once per page)
 		static $course_id = null;
 
-		// only get a context for valid modes
-		if (!in_array($a_mode , array(self::MODE_PREVIEW, self::MODE_PRESENTATION, self::MODE_PRINT)))
+		// only get a context for presentation or preview
+		if ($a_mode != self::MODE_PRESENTATION and $a_mode != self::MODE_PREVIEW)
 		{
 			return 0;
 		}
@@ -860,7 +841,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 						break;
 
 					case self::MODE_PRESENTATION:
-                    case self::MODE_PRINT:
 						if (!isset($page_id))
 						{
 							// not nice, but no other chance to get the page id
