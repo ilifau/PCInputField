@@ -550,22 +550,20 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			$value = $valObj->field_value;
 		}
 
-        $ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
 
-
-		// adding the javascript here as url allows to add the plugin version as parameter
+		// adding the javascript here as url allows to add the plugin versio nas parameter
 		// increase the plugin version number with each change in the javascript file
-        if ($a_mode == self::MODE_PRESENTATION)
-        {
+        if ($a_mode == self::MODE_PRESENTATION) {
             $tpl->addJavaScript(ILIAS_HTTP_PATH . '/' . $this->plugin->getDirectory() . '/js/pcinfi.js?plugin_version=' . $this->plugin->getVersion());
             $tpl->addOnLoadCode('il.PCInputField.init(' . json_encode($this->getJSTexts()) . ');');
+
+            $ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
 
             $ctpl->setCurrentBlock('loader');
             $ctpl->setVariable('TXT_SAVING', $this->txt('saving'));
             $ctpl->setVariable('IMG_LOADER', ilUtil::getImagePath("loader.svg"));
             $ctpl->parseCurrentBlock();
         }
-
 
 //        // debugging output -----------------------------------
 //        $a_properties['context_type'] = $context_type;
@@ -624,61 +622,68 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         }
         else
         {
-            switch ($a_properties['field_type'])
-            {
-                case self::FIELD_TEXT:
-                    $ctpl->setCurrentBlock('text');
-                    $ctpl->setVariable('ID', rand(0, 9999999));
-                    $ctpl->setVariable('NAME', $name);
-                    $ctpl->setVariable('SIZE', $a_properties['field_size']);
-                    $ctpl->setVariable('MAXLENGTH', $a_properties['field_maxlength']);
-                    $ctpl->setVariable('VALUE', ilUtil::prepareFormOutput($value));
-                    $ctpl->parseCurrentBlock();
-                    break;
+		switch ($a_properties['field_type'])
+		{
+			case self::FIELD_TEXT:
+				$ctpl->setCurrentBlock('text');
+				$ctpl->setVariable('ID', rand(0, 9999999));
+				$ctpl->setVariable('NAME', $name);
+				$ctpl->setVariable('SIZE', $a_properties['field_size']);
+				$ctpl->setVariable('MAXLENGTH', $a_properties['field_maxlength']);
+				$ctpl->setVariable('VALUE', ilUtil::prepareFormOutput($value));
+				$ctpl->parseCurrentBlock();
+				break;
 
-                case self::FIELD_TEXTAREA:
-                    $ctpl->setCurrentBlock('textarea');
-                    $ctpl->setVariable('ID', rand(0, 9999999));
-                    $ctpl->setVariable('NAME', $name);
-                    $ctpl->setVariable('COLS', $a_properties['field_cols']);
-                    $ctpl->setVariable('ROWS', $a_properties['field_rows']);
-                    $ctpl->setVariable('VALUE', ilUtil::prepareFormOutput($value));
-                    $ctpl->parseCurrentBlock();
-                    break;
+			case self::FIELD_TEXTAREA:
+				$ctpl->setCurrentBlock('textarea');
+				$ctpl->setVariable('ID', rand(0, 9999999));
+				$ctpl->setVariable('NAME', $name);
+				$ctpl->setVariable('COLS', $a_properties['field_cols']);
+				$ctpl->setVariable('ROWS', $a_properties['field_rows']);
+				$ctpl->setVariable('VALUE', ilUtil::prepareFormOutput($value));
+				$ctpl->parseCurrentBlock();
+				break;
 
-                case self::FIELD_SELECT:
-                    $choices = (array)unserialize($a_properties['select_choices']);
-                    foreach ($choices as $choice)
-                    {
-                        switch ($a_properties['select_type'])
-                        {
-                            case self::SELECT_SINGLE:
-                                $ctpl->setCurrentBlock('single_choice');
-                                $ctpl->setVariable('ID', rand(0, 9999999));
-                                $ctpl->setVariable('NAME', $name);
-                                $ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
-                                if ($choice == $value)
-                                {
-                                    $ctpl->setVariable('CHECKED', 'checked="checked"');
-                                }
-                                $ctpl->parseCurrentBlock();
-                                break;
+			case self::FIELD_SELECT:
+				$choices = (array)unserialize($a_properties['select_choices']);
+                $ctpl->setCurrentBlock('single_choice');
+                $ctpl->setVariable('NAME', $name);
+                $ctpl->parseCurrentBlock();
 
-                            case self::SELECT_MULTI:
-                                $ctpl->setCurrentBlock('multi_choice');
-                                $ctpl->setVariable('ID', rand(0, 9999999));
-                                $ctpl->setVariable('NAME', $name);
-                                $ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
-                                if (in_array($choice, (array)$value))
-                                {
-                                    $ctpl->setVariable('CHECKED', 'checked="checked"');
-                                }
-                                $ctpl->parseCurrentBlock();
-                                break;
-                        }
-                    }
-                    break;
-            }
+				foreach ($choices as $choice)
+				{
+					switch ($a_properties['select_type'])
+					{
+						case self::SELECT_SINGLE:
+							$ctpl->setCurrentBlock('single_choice');
+							$ctpl->setVariable('ID', rand(0, 9999999));
+							$ctpl->setVariable('NAME', $name);
+							$ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
+							if ($choice == $value)
+							{
+								$ctpl->setVariable('CHECKED', 'checked="checked"');
+							}
+							$ctpl->parseCurrentBlock();
+							break;
+
+						case self::SELECT_MULTI:
+							$ctpl->setCurrentBlock('multi_choice');
+							$ctpl->setVariable('ID', rand(0, 9999999));
+							$ctpl->setVariable('NAME', $name);
+							$ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
+							if (in_array($choice, (array)$value))
+							{
+								$ctpl->setVariable('CHECKED', 'checked="checked"');
+							}
+							$ctpl->parseCurrentBlock();
+							break;
+					}
+				}
+                $ctpl->setCurrentBlock('single_choice');
+                $ctpl->parseCurrentBlock();
+
+				break;
+		}
         }
 
 
@@ -692,6 +697,9 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 				$ctpl->setVariable('MODE_CLASS', 'ilPCInputFieldActive');
 				$ctpl->setVariable('SERVICE_URL', $service_url);
 				$ctpl->setVariable('FIELD_TYPE', $a_properties['field_type']);
+
+				$ctpl->setVariable('TXT_SAVING', $this->txt('saving'));
+				$ctpl->setVariable('IMG_LOADER', ilUtil::getImagePath("loader.svg"));
 				break;
 
 			case self::MODE_EDIT:
