@@ -550,19 +550,13 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			$value = $valObj->field_value;
 		}
 
+        $ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
 
-		// adding the javascript here as url allows to add the plugin versio nas parameter
+        // adding the javascript here as url allows to add the plugin versio nas parameter
 		// increase the plugin version number with each change in the javascript file
         if ($a_mode == self::MODE_PRESENTATION) {
             $tpl->addJavaScript(ILIAS_HTTP_PATH . '/' . $this->plugin->getDirectory() . '/js/pcinfi.js?plugin_version=' . $this->plugin->getVersion());
             $tpl->addOnLoadCode('il.PCInputField.init(' . json_encode($this->getJSTexts()) . ');');
-
-            $ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
-
-            $ctpl->setCurrentBlock('loader');
-            $ctpl->setVariable('TXT_SAVING', $this->txt('saving'));
-            $ctpl->setVariable('IMG_LOADER', ilUtil::getImagePath("loader.svg"));
-            $ctpl->parseCurrentBlock();
         }
 
 //        // debugging output -----------------------------------
@@ -646,44 +640,43 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
 			case self::FIELD_SELECT:
 				$choices = (array)unserialize($a_properties['select_choices']);
-                $ctpl->setCurrentBlock('single_choice');
-                $ctpl->setVariable('NAME', $name);
-                $ctpl->parseCurrentBlock();
 
-				foreach ($choices as $choice)
-				{
-					switch ($a_properties['select_type'])
-					{
-						case self::SELECT_SINGLE:
-							$ctpl->setCurrentBlock('single_choice');
-							$ctpl->setVariable('ID', rand(0, 9999999));
-							$ctpl->setVariable('NAME', $name);
-							$ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
-							if ($choice == $value)
-							{
-								$ctpl->setVariable('CHECKED', 'checked="checked"');
-							}
-							$ctpl->parseCurrentBlock();
-							break;
+                switch ($a_properties['select_type'])
+                {
+                    case self::SELECT_SINGLE:
+                        foreach ($choices as $choice) {
+                            $ctpl->setCurrentBlock('single_choice_option');
+                            $ctpl->setVariable('ID', rand(0, 9999999));
+                            $ctpl->setVariable('NAME', $name);
+                            $ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
+                            if ($choice == $value) {
+                                $ctpl->setVariable('CHECKED', 'checked="checked"');
+                            }
+                            $ctpl->parseCurrentBlock();
+                        }
+                        $ctpl->setCurrentBlock('single_choice');
+                        $ctpl->setVariable('NAME', $name);
+                        $ctpl->parseCurrentBlock();
+                        break;
 
-						case self::SELECT_MULTI:
-							$ctpl->setCurrentBlock('multi_choice');
-							$ctpl->setVariable('ID', rand(0, 9999999));
-							$ctpl->setVariable('NAME', $name);
-							$ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
-							if (in_array($choice, (array)$value))
-							{
-								$ctpl->setVariable('CHECKED', 'checked="checked"');
-							}
-							$ctpl->parseCurrentBlock();
-							break;
-					}
+                    case self::SELECT_MULTI:
+                        foreach ($choices as $choice) {
+                            $ctpl->setCurrentBlock('multi_choice_option');
+                            $ctpl->setVariable('ID', rand(0, 9999999));
+                            $ctpl->setVariable('NAME', $name);
+                            $ctpl->setVariable("VALUE", ilUtil::prepareFormOutput($choice));
+                            if (in_array($choice, (array) $value)) {
+                                $ctpl->setVariable('CHECKED', 'checked="checked"');
+                            }
+                            $ctpl->parseCurrentBlock();
+                        }
+                        $ctpl->setCurrentBlock('multi_choice');
+                        $ctpl->setVariable('NAME', $name);
+                        $ctpl->parseCurrentBlock();
+                        break;
 				}
-                $ctpl->setCurrentBlock('single_choice');
-                $ctpl->parseCurrentBlock();
-
-				break;
-		}
+                break;
+		    }
         }
 
 

@@ -160,8 +160,12 @@ class ilPCInputFieldSend
 
 		// return the date and time of the submission
 		$submit_time_raw = $exc_submission->getLastSubmission();
-		$submit_time = ($submit_time_raw ? new ilDateTime($submit_time_raw, IL_CAL_DATETIME) : '');
-		return ilDatePresentation::formatDate($submit_time);
+		if ($submit_time_raw) {
+            $submit_time = new ilDateTime($submit_time_raw, IL_CAL_DATETIME);
+            return ilDatePresentation::formatDate($submit_time);
+        }
+		else {
+            return "";
+        }
 	}
-
 } 
