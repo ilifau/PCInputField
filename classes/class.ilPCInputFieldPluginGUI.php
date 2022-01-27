@@ -856,10 +856,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     case self::MODE_PRINT:
 						if (!isset($page_id))
 						{
-							// not nice, but no other chance to get the page id
-							$gui = new ilLMPresentationGUI;
-							$page_id = $gui->getCurrentPageId();
-							unset($gui);
+							$page_id = $this->plugin->getPageId();
 						}
 						$context_id = $page_id;
 						break;
