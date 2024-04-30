@@ -686,7 +686,13 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 			case self::MODE_PREVIEW:
 			case self::MODE_PRESENTATION:
 				$service_url = ILIAS_HTTP_PATH . '/' . $this->getPlugin()->getDirectory() . '/service.php' . '?client_id=' . CLIENT_ID . '&amp;ref_id=' . (int)$_GET['ref_id'] . '&amp;context_type=' . urlencode($context_type) . '&amp;context_id=' . urlencode($context_id) . '&amp;field_name=' . urlencode($a_properties['field_name']) . '&amp;field_type=' . urlencode($a_properties['field_type']) . '&amp;select_type=' . urlencode($a_properties['select_type']);
-
+	
+				if((int)$_GET['exc_back_ref_id'] > 0)
+				{
+					$type = ilObjectFactory::getTypeByRefId((int)$_GET['exc_back_ref_id']);
+					if($type == "exc")
+						$service_url = ILIAS_HTTP_PATH . '/' . $this->getPlugin()->getDirectory() . '/service.php' . '?client_id=' . CLIENT_ID . '&amp;ref_id=' . (int)$_GET['exc_back_ref_id'] . '&amp;context_type=' . urlencode($context_type) . '&amp;context_id=' . urlencode($context_id) . '&amp;field_name=' . urlencode($a_properties['field_name']) . '&amp;field_type=' . urlencode($a_properties['field_type']) . '&amp;select_type=' . urlencode($a_properties['select_type']);
+				}	
 				$ctpl->setVariable('MODE_CLASS', 'ilPCInputFieldActive');
 				$ctpl->setVariable('SERVICE_URL', $service_url);
 				$ctpl->setVariable('FIELD_TYPE', $a_properties['field_type']);
