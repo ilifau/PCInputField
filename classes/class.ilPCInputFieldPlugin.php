@@ -44,7 +44,7 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 	 *
 	 * @return string
 	 */
-	function getPluginName()
+	function getPluginName(): string
 	{
 		return "PCInputField";
 	}
@@ -55,9 +55,10 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 	 *
 	 * @return string
 	 */
-	function isValidParentType($a_parent_type)
+	public function isValidParentType(string $a_type): bool
+//	function isValidParentType($a_parent_type)
 	{
-		if (in_array($a_parent_type, array("lm")))
+		if (in_array($a_type, array("lm")))
 		{
 			return true;
 		}
@@ -69,7 +70,8 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 	 * @param	string	$a_mode
 	 * @return 	array
 	 */
-	function getJavascriptFiles($a_mode = '')
+	public function getJavascriptFiles(string $a_mode): array
+//	function getJavascriptFiles($a_mode = '')
 	{
 		return array();
 	}
@@ -79,7 +81,8 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
      * @param	string	$a_mode
      * @return 	array
 	 */
-	function getCssFiles($a_mode = '')
+	public function getCssFiles(string $a_mode): array
+//	function getCssFiles($a_mode = '')
 	{
         return array();
 		//return array("css/pcinfi.css");
