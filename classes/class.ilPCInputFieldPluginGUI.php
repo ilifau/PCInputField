@@ -317,12 +317,14 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         $exercise_selector->setHeaderMessage($this->plugin->txt('send_to_exercise'));
         $form->addItem($exercise_selector);
 
-        if ((int)$prop['select_exercise'] > 0) {
-            $ex_ref_id = (int)$prop['select_exercise'];
+        // Verwende Null-Kohaleszenz-Operator, falls 'select_exercise' nicht vorhanden ist
+        $select_exercise = $prop['select_exercise'] ?? 0;
+
+        if ((int)$select_exercise > 0) {
+            $ex_ref_id = (int)$select_exercise;
             $ex_obj_id = ilObject::_lookupObjectId($ex_ref_id);
             $exercise_selector->setValue($ex_ref_id);
-
-            include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
+//            include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
             $assignments_list = ilExAssignment::getAssignmentDataOfExercise($ex_obj_id);
             $selected_assignment = null;
             include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
@@ -330,20 +332,24 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
             $assignment_array = array();
             $assignment_array["0"] = $this->txt('no_assignment_selected');
+
+            // Falls 'select_assignment' nicht vorhanden ist, auf "0" setzen
+            $select_assignment = $prop['select_assignment'] ?? "0";
+
             foreach ($assignments_list as $assignment) {
                 if ($assignment["type"] == "5") {
                     $assignment_array[$assignment["id"]] = $assignment["title"];
-                    if (isset($prop['select_assignment']) AND ((int)$assignment["id"] == (int)$prop['select_assignment'])) {
+                    if ((int)$assignment["id"] == (int)$select_assignment) {
                         $selected_assignment = new ilExAssignment((int)$assignment["id"]);
                     }
                 }
             }
 
             $assignment_selector->setOptions($assignment_array);
-            $assignment_selector->setValue($prop['select_assignment']);
-
+            $assignment_selector->setValue($select_assignment);
             $form->addItem($assignment_selector);
 
+            // Weitere Logik für $selected_assignment, falls vorhanden...
             if (is_a($selected_assignment, 'ilExAssignment')) {
                 $schedule_start = new ilNonEditableValueGUI($this->txt('assignment_schedule_start'), 'schedule_start_date');
                 if ((int)$selected_assignment->getStartTime()) {
@@ -438,7 +444,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         $valObj = ilPCInputFieldValue::getByKeys($context_type, $context_id, $ilUser->getId(), $a_properties['field_name'], false);
 
         if ($valObj === null) {
-            // Kein Eintrag gefunden, Fallback-Wert setzen
             if ($a_properties['field_type'] == self::FIELD_SELECT && $a_properties['select_type'] == self::SELECT_MULTI) {
                 $value = [];
             } else {
@@ -561,7 +566,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     . '&amp;field_type=' . urlencode($a_properties['field_type'])
                     . '&amp;select_type=' . urlencode($a_properties['select_type']);
 
-                // Fix für exc_back_ref_id
                 $exc_back_ref_id = (int)($_GET['exc_back_ref_id'] ?? 0);
                 if ($exc_back_ref_id > 0) {
                     $type = ilObjectFactory::getTypeByRefId($exc_back_ref_id);
@@ -597,7 +601,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
         if (isset($a_properties['select_exercise']) AND isset($a_properties['select_assignment'])) {
             if ((int)$a_properties['select_exercise'] AND (int)$a_properties['select_assignment']) {
-                include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
+                //include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
                 $obj_id = ilObject::_lookupObjId($a_properties['select_exercise']);
                 $assignments_list = ilExAssignment::getAssignmentDataOfExercise($obj_id);
                 include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
@@ -723,6 +727,9 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 }
                 $context_id = $course_id;
                 break;
+
+            default:
+                $context_id = 0;
         }
 
         return $context_id;
@@ -746,7 +753,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
     protected function getLastSubmission($assignmentObject)
     {
         global $ilUser;
-        require_once('Modules/Exercise/classes/class.ilExSubmission.php');
+       // require_once('Modules/Exercise/classes/class.ilExSubmission.php');
         $subObj = new ilExSubmission($assignmentObject, $ilUser->getId());
 
         return $subObj->getLastSubmission();
@@ -786,3 +793,4 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 }
 
 ?>
+
