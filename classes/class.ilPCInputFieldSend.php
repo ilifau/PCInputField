@@ -84,7 +84,7 @@ class ilPCInputFieldSend
 		 */
 
 		//Get all assignments of exercise
-		include_once('./Modules/Exercise/classes/class.ilExAssignment.php');
+		include_once('./Modules/Exercise/Assignment/class.ilExAssignment.php');
 		$exc_assignment_data = ilExAssignment::getAssignmentDataOfExercise($this->exercise_id);
 
 		//Get assignment we want to send field content
@@ -146,7 +146,7 @@ class ilPCInputFieldSend
 		}
 
 		//Create or update submission
-		include_once('./Modules/Exercise/classes/class.ilExSubmission.php');
+		include_once('./Modules/Exercise/Submission/class.ilExSubmission.php');
 		$exc_submission = new ilExSubmission($assignment, $this->user_id);
 		$exc_submission->updateTextSubmission($this->field_value);
 

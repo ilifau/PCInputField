@@ -201,7 +201,12 @@ il.PCInputField = new function () {
 				data: data,			// request data as object
 				dataType: 'json'	// expected response data type
 			})
+
 			.fail(function (jqXHR) {
+				console.error("Status:", jqXHR.status); // HTTP-Statuscode
+				console.error("Response Text:", jqXHR.responseText); // Antwortinhalt
+				console.error("jqXHR Object:", jqXHR); // Das gesamte jqXHR-Objekt
+			
 				self.savings--;
 				if (self.savings <= 0) {
 					window.field.parent().find('.pcinfi-loader').css('display', 'block');
@@ -210,6 +215,21 @@ il.PCInputField = new function () {
 					alert('Saving Failed: (' + jqXHR.status + ') ' + jqXHR.responseText);
 				}
 			})
+			
+			
+			
+			.fail(function (jqXHR) {
+				self.savings--;
+				if (self.savings <= 0) {
+					window.field.parent().find('.pcinfi-loader').css('display', 'block');
+				}
+				if (jqXHR.status !== 0) {
+					alert('Saving Hallo Failed: (' + jqXHR.status + ') ' + jqXHR.responseText + console.log(jqXHR.status, jqXHR.responseText));
+0				
+					console.log(jqXHR);
+				}
+			})
+			
 
 			.done(function (data) {
 				self.savings--;

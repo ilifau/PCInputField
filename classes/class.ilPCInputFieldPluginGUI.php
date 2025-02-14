@@ -83,7 +83,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             );
 
             if ($this->createElement($properties)) {
-                $messageBox = $GLOBALS['DIC']->ui()->factory()->messageBox()->success($lng->txt("msg_obj_modified"));
+                $messageBox = $GLOBALS['DIC']->ui()->factory()->messageBox()->success("das wurde fei verändert"); //$lng->txt("msg_obj_modified")
                 $renderedMessage = $GLOBALS['DIC']->ui()->renderer()->render($messageBox);
                 $tpl->setContent($renderedMessage);
 
