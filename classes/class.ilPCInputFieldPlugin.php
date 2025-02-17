@@ -58,11 +58,11 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 	public function isValidParentType(string $a_type): bool
 //	function isValidParentType($a_parent_type)
 	{
-		if (in_array($a_type, array("lm")))
-		{
+	//	if (in_array($a_type, array("lm")))
+	//	{
 			return true;
-		}
-		return false;
+	//	}
+	//	return false;
 	}
 	
 	/**
