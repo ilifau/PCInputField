@@ -500,7 +500,9 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     $ctpl->setVariable('NAME', $name);
                     $ctpl->setVariable('SIZE', $a_properties['field_size']);
                     $ctpl->setVariable('MAXLENGTH', $a_properties['field_maxlength']);
-                    $ctpl->setVariable('VALUE', htmlspecialchars($value, ENT_QUOTES, 'UTF-8'));
+                  //  $ctpl->setVariable('VALUE', htmlspecialchars($value, ENT_QUOTES, 'UTF-8'));
+                    $ctpl->setVariable('VALUE', htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8'));
+ 
                     $ctpl->parseCurrentBlock();
                     break;
 

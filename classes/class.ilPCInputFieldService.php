@@ -81,7 +81,7 @@ class ilPCInputFieldService
         $valObj = ilPCInputFieldValue::getByKeys($context_type, $context_id, $ilUser->getId(), $field_name, true);
 
         if ($field_type == self::FIELD_SELECT) {
-            $value = ilUtil::stripSlashesArray((array)$_POST['value']);
+            $value = ilArrayUtil::stripSlashesArray((array)$_POST['value']);
             if ($select_type == self::SELECT_SINGLE) {
                 $valObj->field_value = current($value);
             } else {
@@ -112,7 +112,7 @@ class ilPCInputFieldService
         // Send the input object
         $sendObj = ilPCInputFieldSend::init($ilUser->getId(), $field_name, $field_type, $exercise_id, $assignment_id);
         if ($field_type == self::FIELD_SELECT) {
-            $value = ilUtil::stripSlashesArray((array)$_POST['value']);
+            $value = ilArrayUtil::stripSlashesArray((array)$_POST['value']);
             if ($select_type == self::SELECT_SINGLE) {
                 $sendObj->field_value = current($value);
             } else {
