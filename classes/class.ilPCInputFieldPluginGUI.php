@@ -634,6 +634,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                         $sendable = TRUE;
                     } elseif (((time() - (int)$selected_assignment->getStartTime()) > 0) AND (((int)$selected_assignment->getDeadline() - time()) > 0)) {
                         $sendable = TRUE;
+		    } elseif (is_null($selected_assignment->getStartTime()) AND is_null($selected_assignment->getDeadline())) {
+		        $sendable = TRUE;
                     } else {
                         $sendable = FALSE;
                     }
