@@ -2,16 +2,16 @@
 
     <!-- BEGIN debug -->
     {TXT_VERSION}: {VERSION}
-    <br/>{TXT_MODE}: {MODE}
-    <br/>
+    <br />{TXT_MODE}: {MODE}
+    <br />
     <!-- END debug -->
 
     <!-- BEGIN prop -->
-    {TXT_PROP} "{PROP_NAME}": {PROP_VAL}<br/>
+    {TXT_PROP} "{PROP_NAME}": {PROP_VAL}<br />
     <!-- END prop -->
 
     <!-- BEGIN loader -->
-    <p class="pcinfi-loader pull-right small" style="visibility:hidden;">{TXT_SAVING} <img src="{IMG_LOADER}"/></p>
+    <p class="pcinfi-loader pull-right small" style="visibility:hidden;">{TXT_SAVING} <img src="{IMG_LOADER}" /></p>
     <!-- END loader -->
 
     <!-- BEGIN edit -->
@@ -26,7 +26,7 @@
 
     <!-- BEGIN text -->
     <div id="{NAME}">
-        <input id="{ID}" name="{NAME}" type="text" size="{SIZE}" maxlength="{MAXLENGTH}" value="{VALUE}"/>
+        <input id="{ID}" name="{NAME}" type="text" size="{SIZE}" maxlength="{MAXLENGTH}" value="{VALUE}" />
     </div>
     <!-- END text -->
 
@@ -39,7 +39,7 @@
     <!-- BEGIN single_choice -->
     <div id="{NAME}">
         <!-- BEGIN single_choice_option -->
-        <input id="{ID}" name="{NAME}" type="radio" value="{VALUE}" {CHECKED}/> <label for="{ID}">{VALUE}</label>
+        <input id="{ID}" name="{NAME}" type="radio" value="{VALUE}" {CHECKED} /> <label for="{ID}">{VALUE}</label>
         <br />
         <!-- END single_choice_option -->
     </div>
@@ -48,7 +48,7 @@
     <!-- BEGIN multi_choice -->
     <div id="{NAME}">
         <!-- BEGIN multi_choice_option -->
-        <input id="{ID}" name="{NAME}" type="checkbox" value="{VALUE}" {CHECKED}/> <label for="{ID}">{VALUE}</label>
+        <input id="{ID}" name="{NAME}" type="checkbox" value="{VALUE}" {CHECKED} /> <label for="{ID}">{VALUE}</label>
         <br />
         <!-- END multi_choice_option -->
     </div>
@@ -66,18 +66,37 @@
     <div id="status_{NAME}" class="status">{STATUS} {TIME}</div>
     <!-- END status -->
 
+    <!-- *** NEUE KI-FEEDBACK ANZEIGE *** -->
+    <!-- BEGIN ai_feedback_display -->
+    <div class="ai-feedback-container"
+        style="margin-top: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
+        <h4 style="margin-top: 0; color: #333;">🤖 KI-Bewertung</h4>
+
+        <!-- AI Score Box -->
+        {AI_SCORE_BOX}
+
+        <!-- AI Feedback Text Box -->
+        {AI_FEEDBACK_TEXT_BOX}
+
+        <div style="margin-top: 0.5rem; font-size: 0.85em; color: #666; font-style: italic;">
+            ℹ️ Dies ist eine automatische Vorbewertung zur Orientierung. Eine manuelle Nachbewertung durch den Dozenten
+            wird erfolgen.
+        </div>
+    </div>
+    <!-- END ai_feedback_display -->
+
     <!-- BEGIN evaluation -->
-    <div id="evaluation_{NAME}" class="evaluation"><img src="{IMG_EVAL}"/>{EVALUATION}</div>
+    <div id="evaluation_{NAME}" class="evaluation"><img src="{IMG_EVAL}" />{EVALUATION}</div>
     <!-- END evaluation -->
 
     <!-- BEGIN start_time -->
     {START_DATE}{START_DATE_VALUE}
-    <br/>
+    <br />
     <!-- END start_time -->
 
     <!-- BEGIN deadline -->
     {DEADLINE}{DEADLINE_VALUE}
-    <br/>
+    <br />
     <!-- END deadline -->
 
     <!-- BEGIN confirmation -->
@@ -85,4 +104,3 @@
     <!-- END confirmation -->
 
 </div>
-

@@ -109,8 +109,15 @@ class ilPCInputFieldService
         $assignment_id = ilUtil::stripSlashes($_POST['assignment']);
         $select_type = ilUtil::stripSlashes($_GET['select_type']);
 
+        // *** NEUE: HOLE FELD-SPEZIFISCHE KI-EINSTELLUNG ***
+        $field_ai_enabled = $this->getFieldAIEnabled($field_name);
+
         // Send the input object
         $sendObj = ilPCInputFieldSend::init($ilUser->getId(), $field_name, $field_type, $exercise_id, $assignment_id);
+
+        // *** NEUE: ÜBERGEBE KI-EINSTELLUNG AN SEND-OBJEKT ***
+        $sendObj->field_ai_enabled = $field_ai_enabled;
+
         if ($field_type == self::FIELD_SELECT) {
             $value = ilArrayUtil::stripSlashesArray((array)$_POST['value']);
             if ($select_type == self::SELECT_SINGLE) {
@@ -133,6 +140,35 @@ class ilPCInputFieldService
             // Log the error
             $DIC->logger()->error('Fehler beim Senden der Eingabe: ' . $e->getMessage());
             $this->respondHTTP(500, $e->getMessage()); // Send the error message back
+        }
+    }
+
+    /**
+     * Prüfe ob KI-Bewertung für dieses Feld aktiviert ist
+     */
+    private function getFieldAIEnabled($field_name)
+    {
+        try {
+            global $DIC;
+            
+            // 1. Prüfe globale KI-Aktivierung
+            $settings = $DIC->settings();
+            $global_ai_enabled = $settings->get('pcinfi_ai_enabled', '0') === '1';
+            
+            if (!$global_ai_enabled) {
+                return false; // Global deaktiviert
+            }
+            
+            // 2. Hole Feld-spezifische Einstellung aus URL-Parameter (wird von GUI übergeben)
+            $field_ai_enabled = ilUtil::stripSlashes($_GET['field_ai_enabled'] ?? '0');
+            
+            return $field_ai_enabled === '1';
+            
+        } catch (Exception $e) {
+            // Bei Fehlern: Safe fallback auf global aktiviert
+            global $DIC;
+            $settings = $DIC->settings();
+            return $settings->get('pcinfi_ai_enabled', '0') === '1';
         }
     }
 

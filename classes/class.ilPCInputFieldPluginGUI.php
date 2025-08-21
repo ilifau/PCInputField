@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright (c) 2015 Institut fuer Lern-Innovation,
  * Friedrich-Alexander-Universitaet Erlangen-Nuernberg
@@ -70,8 +71,10 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
         $form = $this->initForm(true);
         if ($form->checkInput()) {
+            
             $properties = array(
                 'field_name' => $form->getInput('field_name'),
+                'field_ai_enabled' => $form->getInput('field_ai_enabled') ? '1' : '0', // IMMER LESEN
                 'field_type' => $form->getInput('field_type'),
                 'field_size' => $form->getInput('field_size'),
                 'field_maxlength' => $form->getInput('field_maxlength'),
@@ -108,11 +111,13 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
     {
         global $tpl, $lng;
 
-        $form = $this->initForm(true);
+        $form = $this->initForm(false); // WICHTIG: false für update!
         if ($form->checkInput()) {
             $existing_properties = $this->getProperties();
+            
             $properties = array(
                 'field_name' => $form->getInput('field_name'),
+                'field_ai_enabled' => $form->getInput('field_ai_enabled') ? '1' : '0', // IMMER LESEN
                 'field_type' => $form->getInput('field_type'),
                 'field_size' => $form->getInput('field_size'),
                 'field_maxlength' => $form->getInput('field_maxlength'),
@@ -123,13 +128,10 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 'field_context' => $form->getInput('field_context'),
             );
 
-            foreach ($existing_properties as $property_name => $value) {
-                if (key_exists($property_name, $properties)) {
-                    $existing_properties[$property_name] = $properties[$property_name];
-                }
-            }
+            // WICHTIG: Merge properties richtig - neue Properties hinzufügen
+            $updated_properties = array_merge($existing_properties, $properties);
 
-            if ($this->updateElement($existing_properties)) {
+            if ($this->updateElement($updated_properties)) {
                 $messageBox = $GLOBALS['DIC']->ui()->factory()->messageBox()->success($lng->txt("msg_obj_modified"));
                 $renderedMessage = $GLOBALS['DIC']->ui()->renderer()->render($messageBox);
                 $tpl->setContent($renderedMessage);
@@ -208,6 +210,13 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         $name->setRequired(true);
         $form->addItem($name);
 
+        // *** NEUE: KI-Aktivierung für dieses Feld ***
+        $ai_enabled = new ilCheckboxInputGUI($this->txt('field_ai_enabled'), 'field_ai_enabled');
+        $ai_enabled->setInfo($this->txt('field_ai_enabled_info'));
+        
+        // Checkbox IMMER hinzufügen
+        $form->addItem($ai_enabled);
+
         $type = new ilRadioGroupInputGUI($this->txt('field_type'), 'field_type');
 
         $textfield = new ilRadioOption($this->txt('field_type_text'), self::FIELD_TEXT);
@@ -269,6 +278,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
         if ($a_create) {
             $name->setValue('');
+            $ai_enabled->setChecked(false); // Standard: KI deaktiviert pro Feld
             $type->setValue(self::FIELD_TEXT);
             $size->setValue(50);
             $maxlength->setValue(250);
@@ -283,6 +293,11 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         } else {
             $prop = $this->getProperties();
             $name->setValue($prop['field_name']);
+            
+            // WICHTIG: Prüfe ob field_ai_enabled existiert, falls nicht setze auf '0'
+            $ai_enabled_value = isset($prop['field_ai_enabled']) ? $prop['field_ai_enabled'] : '0';
+            $ai_enabled->setChecked($ai_enabled_value === '1');
+            
             $type->setValue($prop['field_type']);
             $size->setValue($prop['field_size']);
             $maxlength->setValue($prop['field_maxlength']);
@@ -324,7 +339,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             $ex_ref_id = (int)$select_exercise;
             $ex_obj_id = ilObject::_lookupObjectId($ex_ref_id);
             $exercise_selector->setValue($ex_ref_id);
-//            include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
+            //            include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
             $assignments_list = ilExAssignment::getAssignmentDataOfExercise($ex_obj_id);
             $selected_assignment = null;
             include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
@@ -500,9 +515,9 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     $ctpl->setVariable('NAME', $name);
                     $ctpl->setVariable('SIZE', $a_properties['field_size']);
                     $ctpl->setVariable('MAXLENGTH', $a_properties['field_maxlength']);
-                  //  $ctpl->setVariable('VALUE', htmlspecialchars($value, ENT_QUOTES, 'UTF-8'));
+                    //  $ctpl->setVariable('VALUE', htmlspecialchars($value, ENT_QUOTES, 'UTF-8'));
                     $ctpl->setVariable('VALUE', htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8'));
- 
+
                     $ctpl->parseCurrentBlock();
                     break;
 
@@ -566,7 +581,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     . '&amp;context_id=' . urlencode($context_id)
                     . '&amp;field_name=' . urlencode($a_properties['field_name'])
                     . '&amp;field_type=' . urlencode($a_properties['field_type'])
-                    . '&amp;select_type=' . urlencode($a_properties['select_type']);
+                    . '&amp;select_type=' . urlencode($a_properties['select_type'])
+                    . '&amp;field_ai_enabled=' . urlencode($a_properties['field_ai_enabled'] ?? '0'); // NEUE ZEILE
 
                 $exc_back_ref_id = (int)($_GET['exc_back_ref_id'] ?? 0);
                 if ($exc_back_ref_id > 0) {
@@ -579,7 +595,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                             . '&amp;context_id=' . urlencode($context_id)
                             . '&amp;field_name=' . urlencode($a_properties['field_name'])
                             . '&amp;field_type=' . urlencode($a_properties['field_type'])
-                            . '&amp;select_type=' . urlencode($a_properties['select_type']);
+                            . '&amp;select_type=' . urlencode($a_properties['select_type'])
+                            . '&amp;field_ai_enabled=' . urlencode($a_properties['field_ai_enabled'] ?? '0'); // NEUE ZEILE
                     }
                 }
 
@@ -601,8 +618,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 break;
         }
 
-        if (isset($a_properties['select_exercise']) AND isset($a_properties['select_assignment'])) {
-            if ((int)$a_properties['select_exercise'] AND (int)$a_properties['select_assignment']) {
+        if (isset($a_properties['select_exercise']) and isset($a_properties['select_assignment'])) {
+            if ((int)$a_properties['select_exercise'] and (int)$a_properties['select_assignment']) {
                 //include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
                 $obj_id = ilObject::_lookupObjId($a_properties['select_exercise']);
                 $assignments_list = ilExAssignment::getAssignmentDataOfExercise($obj_id);
@@ -623,19 +640,23 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
                 if (is_a($selected_assignment, 'ilExAssignment')) {
                     $start_date = new ilDateTime($selected_assignment->getStartTime(), IL_CAL_UNIX);
-                    $deadline = new ilDateTime($selected_assignment->getDeadline(), IL_CAL_UNIX);
+                    $raw_deadline = (int)$selected_assignment->getDeadline();
+                    if (empty($raw_deadline)) {
+                        $raw_deadline = PHP_INT_MAX; // Fallback auf "niemals"
+                    }
+                    $deadline = new ilDateTime($raw_deadline, IL_CAL_UNIX);
 
                     $submit_time_raw = $this->getLastSubmission($selected_assignment);
                     $submit_time = ($submit_time_raw ? new ilDateTime($submit_time_raw, IL_CAL_DATETIME) : '');
 
-                    if (is_null($selected_assignment->getStartTime()) AND (((int)$selected_assignment->getDeadline() - time()) > 0)) {
+                    if (is_null($selected_assignment->getStartTime()) and (((int)$selected_assignment->getDeadline() - time()) > 0)) {
                         $sendable = TRUE;
-                    } elseif (is_null($selected_assignment->getDeadline()) AND ((time() - (int)$selected_assignment->getStartTime()) > 0)) {
+                    } elseif (is_null($selected_assignment->getDeadline()) and ((time() - (int)$selected_assignment->getStartTime()) > 0)) {
                         $sendable = TRUE;
-                    } elseif (((time() - (int)$selected_assignment->getStartTime()) > 0) AND (((int)$selected_assignment->getDeadline() - time()) > 0)) {
+                    } elseif (((time() - (int)$selected_assignment->getStartTime()) > 0) and (((int)$selected_assignment->getDeadline() - time()) > 0)) {
                         $sendable = TRUE;
-		    } elseif (is_null($selected_assignment->getStartTime()) AND is_null($selected_assignment->getDeadline())) {
-		        $sendable = TRUE;
+                    } elseif (is_null($selected_assignment->getStartTime()) and is_null($selected_assignment->getDeadline())) {
+                        $sendable = TRUE;
                     } else {
                         $sendable = FALSE;
                     }
@@ -643,7 +664,14 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     if ($sendable) {
                         $ctpl->setCurrentBlock('submission');
                         $ctpl->setVariable('BUTTON_ID', $name . '_' . $selected_assignment->getExerciseId() . '_' . $selected_assignment->getId());
-                        $ctpl->setVariable('VALUE', $this->plugin->txt($submit_time_raw ? 're_submit' : 'submit'));
+                        
+                        // Zeige KI-Icon am Submit-Button wenn KI aktiviert ist
+                        $submit_text = $this->plugin->txt($submit_time_raw ? 're_submit' : 'submit');
+                        if (($a_properties['field_ai_enabled'] ?? '0') === '1' && $this->getPlugin()->getSetting('ai_enabled', '0') === '1') {
+                            $submit_text = '🤖 ' . $submit_text . ' (KI-Bewertung)';
+                        }
+                        
+                        $ctpl->setVariable('VALUE', $submit_text);
                         $ctpl->setVariable('CMD', 'cmd[sendInput]');
                         $ctpl->parseCurrentBlock();
 
@@ -660,6 +688,11 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                         $ctpl->setVariable('TIME', ilDatePresentation::formatDate($submit_time));
                     }
                     $ctpl->parseCurrentBlock();
+
+                    // *** NEUE KI-FEEDBACK ANZEIGE (nur wenn KI für dieses Feld aktiviert ist) ***
+                    if ($submit_time_raw && ($a_properties['field_ai_enabled'] ?? '0') === '1') {
+                        $this->showAIFeedback($ctpl, $name, $selected_assignment, $ilUser->getId());
+                    }
 
                     if ((int)$selected_assignment->getStartTime()) {
                         $ctpl->setCurrentBlock('start_time');
@@ -679,6 +712,106 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         }
 
         return $ctpl->get();
+    }
+
+    /**
+     * Neue Methode: Zeige KI-Feedback für Student (nur wenn KI für Feld aktiviert)
+     */
+    protected function showAIFeedback($ctpl, $name, $assignment, $user_id)
+    {
+        try {
+            global $ilDB;
+
+            $assignment_id = $assignment->getId();
+
+            // Sicher & typisiert
+            $res = $ilDB->queryF(
+                "SELECT u_comment
+                 FROM exc_mem_ass_status
+                 WHERE ass_id = %s AND usr_id = %s
+                   AND u_comment IS NOT NULL AND u_comment <> ''",
+                ['integer','integer'],
+                [$assignment_id, $user_id]
+            );
+            $row = $ilDB->fetchAssoc($res);
+
+            if (!$row || trim((string)$row['u_comment']) === '') {
+                return; // nichts zu zeigen
+            }
+
+            $feedback_text_raw = (string)$row['u_comment'];
+
+            // Marker-Prüfung weicher machen (zur Sicherheit alles anzeigen)
+            $is_ai = (stripos($feedback_text_raw, 'KI-VORBEWERTUNG') !== false)
+                  || (stripos($feedback_text_raw, 'KI-Feedback') !== false)
+                  || (stripos($feedback_text_raw, '🤖') !== false);
+
+            if (!$is_ai) {
+                return; // kein KI-Feedback, still bleiben
+            }
+
+            // Parsen (robuster)
+            $parsed = $this->parseAIFeedbackForDisplay($feedback_text_raw);
+            $score   = $parsed['score'];
+            $text    = $parsed['feedback'];
+
+            // Fallbacks
+            if ($text === '' || $text === null) {
+                // Wenn Parsing fehlte, ganzen Kommentar zeigen (escape + nl2br)
+                $text = $feedback_text_raw;
+            }
+
+            // HTML vorbereiten (einfach, ohne Child-Blöcke)
+            $score_html = '';
+            if ($score !== null && $score !== '') {
+                $score_html = '<div class="ai-score"><strong>🤖 Automatische Bewertung:</strong> '
+                            . htmlspecialchars((string)$score, ENT_QUOTES, 'UTF-8')
+                            . '/100</div>';
+            }
+
+            $text_html = '<div class="ai-text" style="margin-top:.35rem;">'
+                       . nl2br(htmlspecialchars($text, ENT_QUOTES, 'UTF-8'))
+                       . '</div>';
+
+            $combined_html = $score_html . $text_html;
+
+            // Parent-Block setzen und NUR hier Variablen füllen
+            $ctpl->setCurrentBlock('ai_feedback_display');
+            $ctpl->setVariable('NAME', $name);
+            $ctpl->setVariable('AI_SCORE_BOX', $score_html);
+            $ctpl->setVariable('AI_FEEDBACK_TEXT_BOX', $text_html);
+            $ctpl->parseCurrentBlock();
+
+        } catch (Exception $e) {
+            // optionales Logging
+            if (isset($GLOBALS['DIC'])) {
+                $GLOBALS['DIC']->logger()->root()->debug('[PCInputField] KI-Feedback Anzeige: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Parse KI-Feedback für schönere Anzeige
+     */
+    protected function parseAIFeedbackForDisplay($feedback_text)
+    {
+        $score = null;
+        $feedback = '';
+
+        // Extrahiere Score
+        if (preg_match('/🤖 Automatische Bewertung:\s*(\d+)\/100 Punkte/i', $feedback_text, $matches)) {
+            $score = $matches[1];
+        }
+
+        // Extrahiere Feedback-Text
+        if (preg_match('/📝 KI-Feedback:\s*\n(.*?)\n\n⏰/s', $feedback_text, $matches)) {
+            $feedback = trim($matches[1]);
+        }
+
+        return array(
+            'score' => $score,
+            'feedback' => $feedback
+        );
     }
 
     protected function getContextId($a_context_type, $a_mode)
@@ -757,7 +890,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
     protected function getLastSubmission($assignmentObject)
     {
         global $ilUser;
-       // require_once('Modules/Exercise/classes/class.ilExSubmission.php');
+        // require_once('Modules/Exercise/classes/class.ilExSubmission.php');
         $subObj = new ilExSubmission($assignmentObject, $ilUser->getId());
 
         return $subObj->getLastSubmission();
@@ -795,6 +928,3 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         return $modal->getHTML();
     }
 }
-
-?>
-
