@@ -49,6 +49,11 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 	{
 		return "PCInputField";
 	}
+
+    public function hasConfigClass(): bool
+{
+    return true;
+}
 	
 
 	/**
@@ -56,7 +61,7 @@ class ilPCInputFieldPlugin extends ilPageComponentPlugin
 	 */
 	function getConfigGUIClassName()
 {
-    return "ilPCInputFieldPluginConfigGUI";
+    return "ilPCInputFieldConfigGUI";
 }
 
 	

@@ -114,11 +114,11 @@ il.PCInputField = new function () {
 		};
 
 		$.ajax({
-				type: 'POST',		// alwasy use POST for the api
-				url: url,			// sync api url
-				data: data,			// request data as object
-				dataType: 'json'	// expected response data type
-			})
+			type: 'POST',		// alwasy use POST for the api
+			url: url,			// sync api url
+			data: data,			// request data as object
+			dataType: 'json'	// expected response data type
+		})
 
 			.fail(function (jqXHR) {
 				self.savings--;
@@ -179,72 +179,64 @@ il.PCInputField = new function () {
 	}
 
 	this.send = function () {
-
 		// show loader
 		self.savings++;
 		window.field.parent().find('.pcinfi-loader').css('visibility', 'visible');
 
 		// POST data
 		var url = window.field.parent().attr('data-service-url');
+
+		// Falls der Wert leer ist, liefern wir bewusst '' statt undefined
+		var postValue = (typeof window.input_content === 'undefined' || window.input_content === null)
+			? ''
+			: window.input_content;
+
 		var data = {
 			cmd: 'sendInput',
 			name: window.input_name,
 			type: window.input_type,
-			value: window.input_content,
+			value: postValue,
 			exercise: window.exercise_id,
 			assignment: window.assignment_id
 		};
 
 		$.ajax({
-				type: 'POST',		// always use POST for the api
-				url: url,			// sync api url
-				data: data,			// request data as object
-				dataType: 'json'	// expected response data type
-			})
-
-			.fail(function (jqXHR) {
-				console.error("Status:", jqXHR.status); // HTTP-Statuscode
-				console.error("Response Text:", jqXHR.responseText); // Antwortinhalt
-				console.error("jqXHR Object:", jqXHR); // Das gesamte jqXHR-Objekt
-			
-				self.savings--;
-				if (self.savings <= 0) {
-					window.field.parent().find('.pcinfi-loader').css('display', 'block');
-				}
-				if (jqXHR.status !== 0) {
-					alert('Saving Failed: (' + jqXHR.status + ') ' + jqXHR.responseText);
-				}
-			})
-			
-			
-			
-			.fail(function (jqXHR) {
-				self.savings--;
-				if (self.savings <= 0) {
-					window.field.parent().find('.pcinfi-loader').css('display', 'block');
-				}
-				if (jqXHR.status !== 0) {
-					alert('Saving Hallo Failed: (' + jqXHR.status + ') ' + jqXHR.responseText + console.log(jqXHR.status, jqXHR.responseText));
-0				
-					console.log(jqXHR);
-				}
-			})
-			
-
-			.done(function (data) {
+			type: 'POST',
+			url: url,
+			data: data,
+			dataType: 'json'
+		})
+			.done(function (resp) {
 				self.savings--;
 				if (self.savings <= 0) {
 					window.field.parent().find('.pcinfi-loader').css('visibility', 'hidden');
 				}
 
-				//Change status to submitted
-				$('#status_' + window.input_name).html(texts.submitted + ' ' + data.submit_time_str);
-
-				//Change send button to re-submit
-				$('input#' + window.input_name + '_' + window.exercise_id + '_' + window.assignment_id).attr('value', texts.re_submit);
+				var ts = (resp && resp.submit_time_str) ? resp.submit_time_str : '';
+				$('#status_' + window.input_name).html(texts.submitted + ' ' + ts);
+				$('input#' + window.input_name + '_' + window.exercise_id + '_' + window.assignment_id)
+					.attr('value', texts.re_submit);
 				$("#pcinfi_" + input_name + "_confirmation").modal('hide');
+			})
+			.fail(function (jqXHR, textStatus, errorThrown) {
+				self.savings--;
+				if (self.savings <= 0) {
+					window.field.parent().find('.pcinfi-loader').css('visibility', 'hidden');
+				}
+
+				var msg = 'Fehler (' + jqXHR.status + '): ';
+				if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+					msg += jqXHR.responseJSON.message;
+				} else if (jqXHR.responseText) {
+					msg += jqXHR.responseText;
+				} else {
+					msg += textStatus || 'Unbekannt';
+				}
+				console.error('pcinfi sendInput failed', { url, data, status: jqXHR.status, textStatus, errorThrown, responseText: jqXHR.responseText });
+				alert(msg);
 			});
 	}
+
 
 	/**
 	 * Hide the navigation modal

@@ -84,104 +84,93 @@ class ilPCInputFieldSend
     }
 
     public function send()
-    {
-        /*
-         * Previous checking of existence and availability of exercise assignment
-         */
+{
+    /*
+     * Previous checking of existence and availability of exercise assignment
+     */
 
-        //Get all assignments of exercise
-        include_once('./Modules/Exercise/Assignment/class.ilExAssignment.php');
-        $exc_assignment_data = ilExAssignment::getAssignmentDataOfExercise($this->exercise_id);
+    //Get all assignments of exercise
+    include_once('./Modules/Exercise/Assignment/class.ilExAssignment.php');
+    $exc_assignment_data = ilExAssignment::getAssignmentDataOfExercise($this->exercise_id);
 
-        //Get assignment we want to send field content
-        $assignment = null;
-        foreach ($exc_assignment_data as $assignment_data)
-        {
-            if ((int)$assignment_data['id'] == $this->assignment_id)
-            {
-                //create assignment object
-                $assignment = new ilExAssignment($this->assignment_id);
-                break;
-            }
-        }
-
-        //If assignment is not in exercise send error message
-        if (!is_a($assignment, 'ilExAssignment'))
-        {
-            $this->send_status = "ERROR_NO_ASSIGNMENT_IN_EXERCISE";
-            $this->send_message = "ERROR_NO_ASSIGNMENT_IN_EXERCISE";
-            return false;
-        }
-
-        //Check if user is in time to send the field content to the assignment
-        if (is_null($assignment->getStartTime()) AND (((int)$assignment->getDeadline() - time()) > 0))
-        {
-            $sendable = TRUE;
-        } elseif (is_null($assignment->getDeadline()) AND ((time() - (int)$assignment->getStartTime()) > 0))
-        {
-            $sendable = TRUE;
-        } elseif (((time() - (int)$assignment->getStartTime()) > 0) AND (((int)$assignment->getDeadline() - time()) > 0))
-        {
-            $sendable = TRUE;
-        } elseif (is_null($assignment->getStartTime()) AND is_null($assignment->getDeadline()))
-        {
-            $sendable = TRUE;
-        } else
-        {
-            $sendable = FALSE;
-        }
-
-        if (!$sendable)
-        {
-            $this->send_status = "ERROR_NOT_IN_TIME";
-            $this->send_message = "ERROR_NOT_IN_TIME";
-            return false;
-        }
-
-        // add the user to the exercise
-        include_once('Modules/Exercise/classes/class.ilObjExercise.php');
-        $exercise = new ilObjExercise($this->exercise_id, false);
-        $members = $exercise->members_obj;
-        if (!$members->isAssigned($this->user_id))
-        {
-            $exc_set = new ilSetting("excs");
-            $old = $exc_set->get("add_to_pd", true);
-            $exc_set->set('add_to_pd', false);
-            $members->assignMember($this->user_id);
-            $exc_set->set('add_to_pd', $old);
-        }
-
-        //Create or update submission (NUR die originale Antwort)
-        include_once('./Modules/Exercise/Submission/class.ilExSubmission.php');
-        $exc_submission = new ilExSubmission($assignment, $this->user_id);
-        $exc_submission->updateTextSubmission($this->field_value);
-
-        // *** KI-BEWERTUNG INS FEEDBACK (nur wenn aktiviert) ***
-        if ($this->field_ai_enabled) {
-            // KI-Bewertung ohne Plugin-Objekt durchführen
-            require_once(dirname(__FILE__) . '/class.ilPCInputFieldAIRating.php');
-            $ai_result = ilPCInputFieldAIRating::evaluateText($this->field_value);
-            
-            // Setze KI-Bewertung als Feedback
-            $this->setAIFeedback($assignment, $this->user_id, $ai_result);
-        }
-
-        //@see ilExSubmissionBaseGUI::handleNewUpload()
-        $exercise->processExerciseStatus(
-            $assignment,
-            array($this->user_id),
-            true);
-
-        // return the date and time of the submission
-        $submit_time_raw = $exc_submission->getLastSubmission();
-        if ($submit_time_raw) {
-            $submit_time = new ilDateTime($submit_time_raw, IL_CAL_DATETIME);
-            return ilDatePresentation::formatDate($submit_time);
-        }
-        else {
-            return "";
+    //Get assignment we want to send field content
+    $assignment = null;
+    foreach ($exc_assignment_data as $assignment_data) {
+        if ((int)$assignment_data['id'] == $this->assignment_id) {
+            $assignment = new ilExAssignment($this->assignment_id);
+            break;
         }
     }
+
+    //If assignment is not in exercise send error message
+    if (!is_a($assignment, 'ilExAssignment')) {
+        $this->send_status  = "ERROR_NO_ASSIGNMENT_IN_EXERCISE";
+        $this->send_message = "Assignment gehört nicht zur Exercise.";
+        return false;
+    }
+
+    //Check if user is in time to send the field content to the assignment
+    if (is_null($assignment->getStartTime()) && (((int)$assignment->getDeadline() - time()) > 0)) {
+        $sendable = true;
+    } elseif (is_null($assignment->getDeadline()) && ((time() - (int)$assignment->getStartTime()) > 0)) {
+        $sendable = true;
+    } elseif (((time() - (int)$assignment->getStartTime()) > 0) && (((int)$assignment->getDeadline() - time()) > 0)) {
+        $sendable = true;
+    } elseif (is_null($assignment->getStartTime()) && is_null($assignment->getDeadline())) {
+        $sendable = true;
+    } else {
+        $sendable = false;
+    }
+
+    if (!$sendable) {
+        $this->send_status  = "ERROR_NOT_IN_TIME";
+        $this->send_message = "Abgabezeitfenster geschlossen.";
+        return false;
+    }
+
+    // add the user to the exercise
+    include_once('Modules/Exercise/classes/class.ilObjExercise.php');
+    $exercise = new ilObjExercise($this->exercise_id, false);
+    $members = $exercise->members_obj;
+    if (!$members->isAssigned($this->user_id)) {
+        $exc_set = new ilSetting("excs");
+        $old = $exc_set->get("add_to_pd", true);
+        $exc_set->set('add_to_pd', false);
+        $members->assignMember($this->user_id);
+        $exc_set->set('add_to_pd', $old);
+    }
+
+    //Create or update submission (NUR die originale Antwort)
+    include_once('./Modules/Exercise/Submission/class.ilExSubmission.php');
+    $exc_submission = new ilExSubmission($assignment, $this->user_id);
+    $exc_submission->updateTextSubmission($this->field_value);
+
+    // *** KI-BEWERTUNG INS FEEDBACK (nur wenn aktiviert) ***
+    if ($this->field_ai_enabled) {
+        require_once(dirname(__FILE__) . '/class.ilPCInputFieldAIRating.php');
+        $ai_result = ilPCInputFieldAIRating::evaluateText($this->field_value);
+        $this->setAIFeedback($assignment, $this->user_id, $ai_result);
+    }
+
+    // Exercise-Status aktualisieren
+    $exercise->processExerciseStatus(
+        $assignment,
+        array($this->user_id),
+        true
+    );
+
+    // return the date and time of the submission
+    $submit_time_raw = $exc_submission->getLastSubmission();
+    if (!empty($submit_time_raw)) {
+        $submit_time = new ilDateTime($submit_time_raw, IL_CAL_DATETIME);
+        return ilDatePresentation::formatDate($submit_time);
+    }
+
+    // Fallback: wenn keine Zeit gespeichert wurde → jetzt nehmen
+    $now = new ilDateTime(time(), IL_CAL_UNIX);
+    return ilDatePresentation::formatDate($now);
+}
+
 
     /**
      * Setze KI-Bewertung als Exercise-Feedback
@@ -189,46 +178,38 @@ class ilPCInputFieldSend
     private function setAIFeedback($assignment, $user_id, $ai_result)
     {
         try {
-            global $ilDB;
-            
-            // Erstelle Feedback-Text
+            global $ilDB, $DIC;
+
             $feedback_text = $this->buildFeedbackText($ai_result);
-            
-            // Hole assignment_id
-            $assignment_id = $assignment->getId();
-            
-            // Prüfe ob bereits ein Eintrag existiert
-            $query = "SELECT * FROM exc_mem_ass_status 
-                      WHERE ass_id = " . $ilDB->quote($assignment_id, 'integer') . " 
-                      AND usr_id = " . $ilDB->quote($user_id, 'integer');
-            $result = $ilDB->query($query);
-            
-            if ($ilDB->fetchAssoc($result)) {
-                // UPDATE: Eintrag existiert bereits
-                $update_query = "UPDATE exc_mem_ass_status 
-                               SET u_comment = " . $ilDB->quote($feedback_text, 'text') . "
-                               WHERE ass_id = " . $ilDB->quote($assignment_id, 'integer') . " 
-                               AND usr_id = " . $ilDB->quote($user_id, 'integer');
-                $ilDB->manipulate($update_query);
-                
+            $ass_id = (int)$assignment->getId();
+
+            $res = $ilDB->queryF(
+                "SELECT usr_id FROM exc_mem_ass_status WHERE ass_id = %s AND usr_id = %s",
+                ['integer', 'integer'],
+                [$ass_id, $user_id]
+            );
+
+            if ($ilDB->numRows($res)) {
+                $ilDB->manipulateF(
+                    "UPDATE exc_mem_ass_status SET u_comment = %s WHERE ass_id = %s AND usr_id = %s",
+                    ['text', 'integer', 'integer'],
+                    [$feedback_text, $ass_id, $user_id]
+                );
             } else {
-                // INSERT: Neuer Eintrag
-                $insert_query = "INSERT INTO exc_mem_ass_status (ass_id, usr_id, u_comment) 
-                               VALUES (" . 
-                               $ilDB->quote($assignment_id, 'integer') . ", " .
-                               $ilDB->quote($user_id, 'integer') . ", " .
-                               $ilDB->quote($feedback_text, 'text') . ")";
-                $ilDB->manipulate($insert_query);
+                $ilDB->manipulateF(
+                    "INSERT INTO exc_mem_ass_status (ass_id, usr_id, u_comment) VALUES (%s,%s,%s)",
+                    ['integer', 'integer', 'text'],
+                    [$ass_id, $user_id, $feedback_text]
+                );
             }
-            
-            global $DIC;
-            $DIC->logger()->info('KI-Feedback in exc_mem_ass_status gespeichert für User ' . $user_id . ', Assignment ' . $assignment_id);
-            
-        } catch (Exception $e) {
-            global $DIC;
-            $DIC->logger()->error('Fehler beim Speichern des KI-Feedbacks in Datenbank: ' . $e->getMessage());
+
+            $DIC->logger()->info("KI-Feedback gespeichert (ass_id={$ass_id}, usr_id={$user_id})");
+        } catch (Throwable $e) {
+            $DIC->logger()->error('Fehler beim Speichern des KI-Feedbacks: ' . $e->getMessage());
         }
     }
+
+
 
     /**
      * Erstelle Feedback-Text aus KI-Bewertung
@@ -236,29 +217,28 @@ class ilPCInputFieldSend
     private function buildFeedbackText($ai_result)
     {
         $feedback_text = "=== KI-VORBEWERTUNG ===\n\n";
-        
+
         if ($ai_result['success']) {
-            
+
             if (isset($ai_result['score'])) {
                 $feedback_text .= "🤖 Automatische Bewertung: " . $ai_result['score'] . "/100 Punkte\n\n";
             }
-            
+
             if (isset($ai_result['feedback'])) {
                 $feedback_text .= "📝 KI-Feedback:\n" . $ai_result['feedback'] . "\n\n";
             }
-            
+
             $feedback_text .= "⏰ Bewertungszeitpunkt: " . date('d.m.Y H:i:s') . "\n";
             $feedback_text .= "ℹ️ Dies ist eine automatische Vorbewertung zur Orientierung.\n";
             $feedback_text .= "📋 Eine manuelle Nachbewertung durch den Dozenten ist möglich.\n\n";
-            
+
             $feedback_text .= "--- Platz für Dozenten-Feedback ---\n\n";
-            
         } else {
             $feedback_text .= "❌ Automatische Bewertung nicht verfügbar\n";
             $feedback_text .= "Grund: " . $ai_result['message'] . "\n\n";
             $feedback_text .= "📝 Manuelle Bewertung erforderlich.\n\n";
         }
-        
+
         return $feedback_text;
     }
 
@@ -274,7 +254,7 @@ class ilPCInputFieldSend
         if ($score >= 60) return "4.0";
         if ($score >= 50) return "4.5";
         return "5.0";
-        
+
         // Alternative: Direkt den Score als "Punkte"
         // return $score . "/100";
     }

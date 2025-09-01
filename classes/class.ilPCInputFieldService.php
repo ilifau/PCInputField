@@ -1,39 +1,37 @@
 <?php
 
 /**
- * Copyright (c) 2015 Institut fuer Lern-Innovation,
- * Friedrich-Alexander-Universitaet Erlangen-Nuernberg
- * GPLv3, see docs/LICENSE
- */
-
-/**
- * Page Component Input Field: service for handling inputs
- *
- * @author Fred Neumann <fred.neumann@fau.de>
- * @version $Id$
+ * Page Component Input Field: service for handling inputs (AJAX)
+ * Hardened for PHP 8 and consistent JSON responses
  */
 class ilPCInputFieldService
 {
-
-    // must correspond to ilPCInputfieldPluginGUI
-    // repeated here to avoid instanciation
-    const FIELD_TEXT = 'text';
+    // must correspond to ilPCInputFieldPluginGUI
+    const FIELD_TEXT     = 'text';
     const FIELD_TEXTAREA = 'textarea';
-    const FIELD_SELECT = 'select';
-    const SELECT_SINGLE = 'single';
-    const SELECT_MULTI = 'multi';
+    const FIELD_SELECT   = 'select';
+    const SELECT_SINGLE  = 'single';
+    const SELECT_MULTI   = 'multi';
 
     /**
      * @var string path of the plugin's base directory
      */
     protected $plugin_path = '';
 
-    /**
-     * Constructor: general initialisations
-     */
     public function __construct()
     {
         $this->plugin_path = realpath(dirname(__FILE__) . '/..');
+    }
+
+    /**
+     * Einheitliche JSON-Antwort
+     */
+    protected function respondJSON(int $status, array $payload)
+    {
+        http_response_code($status);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($payload);
+        exit;
     }
 
     /**
@@ -41,172 +39,182 @@ class ilPCInputFieldService
      */
     public function handleRequest()
     {
-        /** @var ilAccessHandler $ilAccess */
-        global $ilAccess, $ilUser;
+        global $ilAccess;
+
         try {
-            if (!$ilAccess->checkAccess('read', '', $_GET['ref_id'])) {
-                $this->respondHTTP(403, $ilUser->getLogin()); // forbidden
+            $ref_id = (int)($_GET['ref_id'] ?? 0);
+            if (!$ref_id || !$ilAccess->checkAccess('read', '', $ref_id)) {
+                return $this->respondJSON(403, ['status' => 403, 'message' => 'Forbidden']);
             }
 
-            switch ($_POST['cmd']) {
+            $cmd = $_POST['cmd'] ?? '';
+            switch ($cmd) {
                 case 'saveInput':
-                    $this->saveInput();
-                    break;
+                    return $this->saveInput();
                 case 'sendInput':
-                    $this->sendInput();
-                    break;
+                    return $this->sendInput();
                 default:
-                    $this->respondHTTP(501); // not implemented
-                    break;
+                    return $this->respondJSON(501, ['status' => 501, 'message' => 'Not Implemented']);
             }
-        } catch (Exception $exception) {
-            //$this->respondHTTP(500, $exception->getMessage());
+        } catch (Throwable $e) {
+            return $this->respondJSON(500, ['status' => 500, 'message' => $e->getMessage()]);
         }
     }
 
     /**
      * Save an input that is sent
      */
-    protected function saveInput()
+    protected function sendInput()
     {
-        global $ilUser;
-        require_once($this->plugin_path . '/classes/class.ilPCInputFieldValue.php');
-        $context_type = ilUtil::stripSlashes($_GET['context_type']);
-        $context_id = ilUtil::stripSlashes(($_GET['context_id']));
-        $field_name = ilUtil::stripSlashes($_GET['field_name']);
-        $field_type = ilUtil::stripSlashes($_GET['field_type']);
-        $select_type = ilUtil::stripSlashes($_GET['select_type']);
+        global $ilUser, $DIC;
 
-        // save the input (create if not exists)
-        $valObj = ilPCInputFieldValue::getByKeys($context_type, $context_id, $ilUser->getId(), $field_name, true);
+        require_once $this->plugin_path . '/classes/class.ilPCInputFieldSend.php';
 
-        if ($field_type == self::FIELD_SELECT) {
-            $value = ilArrayUtil::stripSlashesArray((array)$_POST['value']);
-            if ($select_type == self::SELECT_SINGLE) {
-                $valObj->field_value = current($value);
+        $field_name    = ilUtil::stripSlashes($_POST['name'] ?? '');
+        $field_type    = ilUtil::stripSlashes($_POST['type'] ?? '');
+        $exercise_id   = ilUtil::stripSlashes($_POST['exercise'] ?? '0');
+        $assignment_id = ilUtil::stripSlashes($_POST['assignment'] ?? '0');
+        $select_type   = ilUtil::stripSlashes($_GET['select_type'] ?? self::SELECT_SINGLE);
+
+        $field_ai_enabled = $this->getFieldAIEnabled($field_name);
+
+        $sendObj = ilPCInputFieldSend::init($ilUser->getId(), $field_name, $field_type, $exercise_id, $assignment_id);
+        if (!($sendObj instanceof ilPCInputFieldSend)) {
+            return $this->respondJSON(500, ['status' => 500, 'message' => 'Init failed: ilPCInputFieldSend is null']);
+        }
+        $sendObj->field_ai_enabled = $field_ai_enabled;
+
+        $raw = $_POST['value'] ?? null;
+        if ($field_type === self::FIELD_SELECT) {
+            if (is_array($raw)) {
+                $value_arr = ilArrayUtil::stripSlashesArray($raw);
+            } elseif ($raw !== null) {
+                $value_arr = ilArrayUtil::stripSlashesArray([$raw]);
             } else {
-                $valObj->field_value = serialize($value);
+                $value_arr = [];
+            }
+            if ($select_type === self::SELECT_SINGLE) {
+                $sendObj->field_value = $value_arr ? current($value_arr) : '';
+            } else {
+                $sendObj->field_value = serialize($value_arr);
             }
         } else {
-            $valObj->field_value = ilUtil::stripSlashes($_POST['value']);
+            $sendObj->field_value = ($raw !== null) ? ilUtil::stripSlashes($raw) : '';
         }
 
-        $valObj->save();
-        $this->respondHTTP(200, json_encode($valObj->id));
+        try {
+            if ($submit_time_str = $sendObj->send()) {
+                // *** Merker setzen: gerade gesendet (Race-Protection für saveInput) ***
+                $ctx_type = ilUtil::stripSlashes($_GET['context_type'] ?? '');
+                $ctx_id   = ilUtil::stripSlashes($_GET['context_id'] ?? '');
+                $key = implode(':', [(int)$ilUser->getId(), $ctx_type, $ctx_id, $field_name]);
+                if (!isset($_SESSION)) {
+                    @session_start();
+                }
+                $_SESSION['pcinfi_last_send'][$key] = time();
+
+                return $this->respondJSON(200, ['status' => 200, 'submit_time_str' => $submit_time_str]);
+            }
+            return $this->respondJSON(500, ['status' => 500, 'message' => $sendObj->send_message ?? 'Unknown error']);
+        } catch (Throwable $e) {
+            $DIC->logger()->error('Fehler beim Senden der Eingabe: ' . $e->getMessage());
+            return $this->respondJSON(500, ['status' => 500, 'message' => $e->getMessage()]);
+        }
     }
+
+
 
     /**
      * Send an input to an exercise
      */
-    protected function sendInput()
+    protected function saveInput()
     {
         global $ilUser;
-        global $DIC;
-        require_once($this->plugin_path . '/classes/class.ilPCInputFieldSend.php');
-        $field_name = ilUtil::stripSlashes($_POST['name']);
-        $field_type = ilUtil::stripSlashes($_POST['type']);
-        $exercise_id = ilUtil::stripSlashes(($_POST['exercise']));
-        $assignment_id = ilUtil::stripSlashes($_POST['assignment']);
-        $select_type = ilUtil::stripSlashes($_GET['select_type']);
+        require_once $this->plugin_path . '/classes/class.ilPCInputFieldValue.php';
 
-        // *** NEUE: HOLE FELD-SPEZIFISCHE KI-EINSTELLUNG ***
-        $field_ai_enabled = $this->getFieldAIEnabled($field_name);
+        $context_type = ilUtil::stripSlashes($_GET['context_type'] ?? '');
+        $context_id   = ilUtil::stripSlashes($_GET['context_id'] ?? '');
+        $field_name   = ilUtil::stripSlashes($_GET['field_name'] ?? '');
+        $field_type   = ilUtil::stripSlashes($_GET['field_type'] ?? '');
+        $select_type  = ilUtil::stripSlashes($_GET['select_type'] ?? self::SELECT_SINGLE);
 
-        // Send the input object
-        $sendObj = ilPCInputFieldSend::init($ilUser->getId(), $field_name, $field_type, $exercise_id, $assignment_id);
+        // create if not exists (ohne zu überschreiben)
+        $valObj = ilPCInputFieldValue::getByKeys($context_type, $context_id, $ilUser->getId(), $field_name, true);
 
-        // *** NEUE: ÜBERGEBE KI-EINSTELLUNG AN SEND-OBJEKT ***
-        $sendObj->field_ai_enabled = $field_ai_enabled;
+        // --- RACE-PROTECTION: Wenn kurz vorher ein sendInput lief und value leer ist -> NICHT speichern ---
+        $has_value_key = array_key_exists('value', $_POST);
+        $raw           = $has_value_key ? $_POST['value'] : null;
 
-        if ($field_type == self::FIELD_SELECT) {
-            $value = ilArrayUtil::stripSlashesArray((array)$_POST['value']);
-            if ($select_type == self::SELECT_SINGLE) {
-                $sendObj->field_value = current($value);
+        // "Leer" definieren ('' oder leeres Array)
+        $is_empty_submission =
+            ($raw === '' || $raw === null ||
+                (is_array($raw) && count(array_filter($raw, static function ($v) {
+                    return $v !== '' && $v !== null;
+                })) === 0));
+
+        // Schlüssel wie in sendInput
+        $key = implode(':', [(int)$ilUser->getId(), $context_type, $context_id, $field_name]);
+        if (!isset($_SESSION)) {
+            @session_start();
+        }
+        $recent_send_ts = $_SESSION['pcinfi_last_send'][$key] ?? 0;
+        $recent_send    = $recent_send_ts && (time() - (int)$recent_send_ts) <= 5; // 5 Sekunden Fenster
+
+        if ($recent_send && $is_empty_submission) {
+            // Überschreiben verhindern – alten Wert behalten
+            return $this->respondJSON(200, ['status' => 200, 'id' => $valObj->id, 'skipped' => true]);
+        }
+
+        // Wenn value-Key gar nicht existiert: ebenfalls nichts ändern
+        if (!$has_value_key) {
+            return $this->respondJSON(200, ['status' => 200, 'id' => $valObj->id, 'skipped' => true]);
+        }
+
+        // --- Normale Speicherung ---
+        if ($field_type === self::FIELD_SELECT) {
+            if (is_array($raw)) {
+                $value_arr = ilArrayUtil::stripSlashesArray($raw);
+            } elseif ($raw !== null) {
+                $value_arr = ilArrayUtil::stripSlashesArray([$raw]);
             } else {
-                $sendObj->field_value = serialize($value);
+                $value_arr = [];
+            }
+            if ($select_type === self::SELECT_SINGLE) {
+                $valObj->field_value = $value_arr ? current($value_arr) : '';
+            } else {
+                $valObj->field_value = serialize($value_arr);
             }
         } else {
-            $sendObj->field_value = ilUtil::stripSlashes($_POST['value']);
+            $valObj->field_value = ($raw !== null) ? ilUtil::stripSlashes($raw) : '';
         }
 
-        // Send the input to exercise assignment
-        try {
-            if ($submit_time_str = $sendObj->send()) {
-                $this->respondHTTP(200, json_encode(array('submit_time_str' => $submit_time_str)));
-            } else {
-                $this->respondHTTP(500);
-            }
-        } catch (Exception $e) {
-            // Log the error
-            $DIC->logger()->error('Fehler beim Senden der Eingabe: ' . $e->getMessage());
-            $this->respondHTTP(500, $e->getMessage()); // Send the error message back
-        }
+        $valObj->save();
+        return $this->respondJSON(200, ['status' => 200, 'id' => $valObj->id]);
     }
 
+
     /**
-     * Prüfe ob KI-Bewertung für dieses Feld aktiviert ist
+     * Prüfe, ob KI-Bewertung für dieses Feld aktiv ist (global + Feld)
      */
-    private function getFieldAIEnabled($field_name)
+    private function getFieldAIEnabled(string $field_name): bool
     {
         try {
             global $DIC;
-            
-            // 1. Prüfe globale KI-Aktivierung
+
+            // 1) Globales Flag
             $settings = $DIC->settings();
             $global_ai_enabled = $settings->get('pcinfi_ai_enabled', '0') === '1';
-            
             if (!$global_ai_enabled) {
-                return false; // Global deaktiviert
+                return false;
             }
-            
-            // 2. Hole Feld-spezifische Einstellung aus URL-Parameter (wird von GUI übergeben)
-            $field_ai_enabled = ilUtil::stripSlashes($_GET['field_ai_enabled'] ?? '0');
-            
-            return $field_ai_enabled === '1';
-            
-        } catch (Exception $e) {
-            // Bei Fehlern: Safe fallback auf global aktiviert
-            global $DIC;
-            $settings = $DIC->settings();
-            return $settings->get('pcinfi_ai_enabled', '0') === '1';
-        }
-    }
 
-    /**
-     * Send a HTTP response
-     * @param int    $status  HTTP status
-     * @param string $message response message
-     */
-    protected function respondHTTP($status, $message = null)
-    {
-        switch ($status) {
-            case 200:
-                $text = 'OK';
-                break;
-            case 400:
-                $text = 'Bad Request';
-                break;
-            case 401:
-                $text = 'Unauthorized';
-                break;
-            case 403:
-                $text = 'Forbidden';
-                break;
-            case 404:
-                $text = 'Not Found';
-                break;
-            case 500:
-                $text = 'Internal Server Error';
-                break;
-            case 501:
-                $text = 'Not Implemented';
-                break;
-            default:
-                $text = 'Unknown';
+            // 2) Feld-Flag aus URL (SERVICE_URL hängt field_ai_enabled=0/1 an)
+            $field_flag = ilUtil::stripSlashes($_GET['field_ai_enabled'] ?? '0');
+            return $field_flag === '1';
+        } catch (Throwable $e) {
+            // Fallback: nur globales Flag
+            global $DIC;
+            return $DIC->settings()->get('pcinfi_ai_enabled', '0') === '1';
         }
-        header('HTTP/1.1 ' . $status . ' ' . $text);
-        header('Content-type: application/json');
-        echo isset($message) ? $message : $text;
-        exit;
     }
 }

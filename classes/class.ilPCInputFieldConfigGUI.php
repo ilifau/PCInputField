@@ -14,7 +14,7 @@ include_once("./Services/Component/classes/class.ilPluginConfigGUI.php");
  * @author Fred Neumann <fred.neumann@fau.de>
  * @version $Id$
  */
-class ilPCInputFieldPluginConfigGUI extends ilPluginConfigGUI
+class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
 {
     /**
      * Handles all commmands, default is "configure"
@@ -64,14 +64,11 @@ class ilPCInputFieldPluginConfigGUI extends ilPluginConfigGUI
         $form->addItem($api_key);
 
         // KI-Modell Auswahl
-        $ai_model = new ilSelectInputGUI($this->plugin_object->txt("ai_model"), "ai_model");
-        $ai_model->setInfo($this->plugin_object->txt("ai_model_info"));
-        $ai_model->setOptions(array(
-            'gpt-3.5-turbo' => 'GPT-3.5 Turbo (günstiger)',
-            'gpt-4' => 'GPT-4 (bessere Qualität)',
-            'gpt-4-turbo' => 'GPT-4 Turbo (empfohlen)'
-        ));
-        $ai_model->setValue($this->plugin_object->getSetting('ai_model', 'gpt-3.5-turbo'));
+        $ai_model = new ilTextInputGUI($this->plugin_object->txt("ai_model"), "ai_model");
+        $ai_model->setInfo($this->plugin_object->txt("ai_model_info") ?? "z.B. qwen2.5-14b-instruct, gpt-4, etc.");
+        $ai_model->setSize(30);
+        $ai_model->setMaxLength(100);
+        $ai_model->setValue($this->plugin_object->getSetting('ai_model', 'qwen2.5-14b-instruct'));
         $form->addItem($ai_model);
 
         // Standard-Prompt für KI-Bewertung
@@ -131,7 +128,8 @@ class ilPCInputFieldPluginConfigGUI extends ilPluginConfigGUI
             $this->plugin_object->setSetting('debug_mode', $form->getInput('debug_mode') ? '1' : '0');
 
             // Bestätigungsmeldung
-            ilUtil::sendSuccess($lng->txt("settings_saved"), true);
+            global $DIC;
+            $DIC->ui()->mainTemplate()->setOnScreenMessage('success', $lng->txt("settings_saved"), true);
             $ilCtrl->redirect($this, "configure");
         } else {
             $form->setValuesByPost();
