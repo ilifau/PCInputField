@@ -629,7 +629,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 $ctpl->setVariable('FIELD_TYPE', $a_properties['field_type']);
 
                 $ctpl->setVariable('TXT_SAVING', $this->txt('saving'));
-                $ctpl->setVariable('IMG_LOADER', ilUtil::getImagePath("loader.svg"));
+                $ctpl->setVariable('IMG_LOADER', './templates/default/images/loader.svg');
                 break;
 
             case self::MODE_EDIT:

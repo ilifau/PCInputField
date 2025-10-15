@@ -24,6 +24,22 @@ class ilPCInputFieldService
     }
 
     /**
+     * Sanitize user input (remove null bytes, excessive whitespace)
+     */
+    private function sanitizeInput(string $input, int $maxLength = 65535): string
+    {
+        // Remove null bytes (security)
+        $input = str_replace("\0", '', $input);
+        
+        // Limit length (CLOB in MySQL is typically 64KB)
+        if (strlen($input) > $maxLength) {
+            $input = substr($input, 0, $maxLength);
+        }
+        
+        return $input;
+    }
+
+    /**
      * Einheitliche JSON-Antwort
      */
     protected function respondJSON(int $status, array $payload)
@@ -71,11 +87,11 @@ class ilPCInputFieldService
         require_once $this->plugin_path . '/classes/class.ilPCInputFieldSend.php';
         require_once $this->plugin_path . '/classes/class.ilPCInputFieldValue.php';
 
-        $field_name    = ilUtil::stripSlashes($_POST['name'] ?? '');
-        $field_type    = ilUtil::stripSlashes($_POST['type'] ?? '');
-        $exercise_id   = ilUtil::stripSlashes($_POST['exercise'] ?? '0');
-        $assignment_id = ilUtil::stripSlashes($_POST['assignment'] ?? '0');
-        $select_type   = ilUtil::stripSlashes($_GET['select_type'] ?? self::SELECT_SINGLE);
+        $field_name    = $_POST['name'] ?? '';
+        $field_type    = $_POST['type'] ?? '';
+        $exercise_id   = $_POST['exercise'] ?? '0';
+        $assignment_id = $_POST['assignment'] ?? '0';
+        $select_type   = $_GET['select_type'] ?? self::SELECT_SINGLE;
 
         $field_ai_enabled = $this->getFieldAIEnabled($field_name);
         
@@ -91,9 +107,9 @@ class ilPCInputFieldService
         $raw = $_POST['value'] ?? null;
         if ($field_type === self::FIELD_SELECT) {
             if (is_array($raw)) {
-                $value_arr = ilArrayUtil::stripSlashesArray($raw);
+                $value_arr = array_map([$this, 'sanitizeInput'], $raw);
             } elseif ($raw !== null) {
-                $value_arr = ilArrayUtil::stripSlashesArray([$raw]);
+                $value_arr = [$this->sanitizeInput($raw)];
             } else {
                 $value_arr = [];
             }
@@ -103,14 +119,14 @@ class ilPCInputFieldService
                 $sendObj->field_value = serialize($value_arr);
             }
         } else {
-            $sendObj->field_value = ($raw !== null) ? ilUtil::stripSlashes($raw) : '';
+            $sendObj->field_value = ($raw !== null) ? $this->sanitizeInput($raw) : '';
         }
 
         try {
             if ($submit_time_str = $sendObj->send()) {
                 // *** WICHTIG: Auch in pcinfi_values speichern, damit nach Reload der Wert sichtbar ist ***
-                $context_type = ilUtil::stripSlashes($_GET['context_type'] ?? '');
-                $context_id   = ilUtil::stripSlashes($_GET['context_id'] ?? '');
+                $context_type = $_GET['context_type'] ?? '';
+                $context_id   = $_GET['context_id'] ?? '';
                 
                 $DIC->logger()->root()->info('[PCInputField] sendInput SUCCESS - Saving to DB: context=' . $context_type . ':' . $context_id . ', field=' . $field_name . ', value=' . substr($sendObj->field_value, 0, 50));
                 
@@ -146,11 +162,11 @@ class ilPCInputFieldService
         global $ilUser, $DIC;
         require_once $this->plugin_path . '/classes/class.ilPCInputFieldValue.php';
 
-        $context_type = ilUtil::stripSlashes($_GET['context_type'] ?? '');
-        $context_id   = ilUtil::stripSlashes($_GET['context_id'] ?? '');
-        $field_name   = ilUtil::stripSlashes($_GET['field_name'] ?? '');
-        $field_type   = ilUtil::stripSlashes($_GET['field_type'] ?? '');
-        $select_type  = ilUtil::stripSlashes($_GET['select_type'] ?? self::SELECT_SINGLE);
+        $context_type = $_GET['context_type'] ?? '';
+        $context_id   = $_GET['context_id'] ?? '';
+        $field_name   = $_GET['field_name'] ?? '';
+        $field_type   = $_GET['field_type'] ?? '';
+        $select_type  = $_GET['select_type'] ?? self::SELECT_SINGLE;
 
         $DIC->logger()->root()->debug('[PCInputField] saveInput: context=' . $context_type . ':' . $context_id . ', field=' . $field_name);
 
@@ -189,9 +205,9 @@ class ilPCInputFieldService
         // --- Normale Speicherung ---
         if ($field_type === self::FIELD_SELECT) {
             if (is_array($raw)) {
-                $value_arr = ilArrayUtil::stripSlashesArray($raw);
+                $value_arr = array_map([$this, 'sanitizeInput'], $raw);
             } elseif ($raw !== null) {
-                $value_arr = ilArrayUtil::stripSlashesArray([$raw]);
+                $value_arr = [$this->sanitizeInput($raw)];
             } else {
                 $value_arr = [];
             }
@@ -201,7 +217,7 @@ class ilPCInputFieldService
                 $valObj->field_value = serialize($value_arr);
             }
         } else {
-            $valObj->field_value = ($raw !== null) ? ilUtil::stripSlashes($raw) : '';
+            $valObj->field_value = ($raw !== null) ? $this->sanitizeInput($raw) : '';
         }
 
         $valObj->save();
@@ -228,7 +244,7 @@ class ilPCInputFieldService
             }
 
             // 2) Feld-Flag aus URL (SERVICE_URL hängt field_ai_enabled=0/1 an)
-            $field_flag = ilUtil::stripSlashes($_GET['field_ai_enabled'] ?? '0');
+            $field_flag = $_GET['field_ai_enabled'] ?? '0';
             
             $DIC->logger()->root()->debug('[PCInputField] Field AI flag from GET: ' . $field_flag);
             

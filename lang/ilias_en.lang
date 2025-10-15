@@ -51,3 +51,18 @@ re_submit#:#Re-Submit
 submitted#:#Submitted
 submit_success#:#Your submission is saved.
 save_on_navigation#:#Do you want to send your input for being assessed?
+configuration#:#Configuration
+field_ai_enabled#:#Enable AI Support
+field_ai_enabled_info#:#Enables automatic AI-based evaluation for this field (visible to administrators only)
+openai_api_key#:#OpenAI API Endpoint
+openai_api_key_info#:#URL to OpenAI-compatible API endpoint (e.g., http://10.131.192.215:1234/v1/chat/completions)
+ai_model#:#AI Model
+ai_model_info#:#Name of the AI model to use (e.g., qwen2.5-14b-instruct)
+ai_prompt#:#AI Evaluation Prompt
+ai_prompt_info#:#System prompt for AI evaluation. Use {answer} as placeholder for student answer.
+max_tokens#:#Maximum Token Count
+max_tokens_info#:#Maximum number of tokens in AI response (recommended: 500)
+api_timeout#:#API Timeout (Seconds)
+api_timeout_info#:#Maximum wait time for AI API responses in seconds (recommended: 30)
+debug_mode#:#Enable Debug Mode
+debug_mode_info#:#Enables extended logging output for troubleshooting

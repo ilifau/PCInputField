@@ -51,3 +51,18 @@ re_submit#:#Einreichung aktualisieren
 submitted#:#Eingereicht
 submit_success#:#Ihre Einreichung wurde übernommen.
 save_on_navigation#:#Möchten Sie Ihre Eingabe zur Bewertung einreichen?
+configuration#:#Konfiguration
+field_ai_enabled#:#KI-Unterstützung aktivieren
+field_ai_enabled_info#:#Aktiviert automatische KI-basierte Bewertung für dieses Feld (nur für Administratoren sichtbar)
+openai_api_key#:#OpenAI API Endpoint
+openai_api_key_info#:#URL zum OpenAI-kompatiblen API-Endpoint
+ai_model#:#AI Modell
+ai_model_info#:#Name des zu verwendenden AI-Modells (z.B. qwen2.5-14b-instruct)
+ai_prompt#:#AI Bewertungs-Prompt
+ai_prompt_info#:#Systemprompt für die KI-Bewertung. Verwenden Sie {answer} als Platzhalter für die Studenten-Antwort.
+max_tokens#:#Maximale Token-Anzahl
+max_tokens_info#:#Maximale Anzahl der Tokens in der KI-Antwort (empfohlen: 500)
+api_timeout#:#API Timeout (Sekunden)
+api_timeout_info#:#Maximale Wartezeit für KI-API-Antworten in Sekunden (empfohlen: 30)
+debug_mode#:#Debug-Modus aktivieren
+debug_mode_info#:#Aktiviert erweiterte Logging-Ausgaben für Fehlersuche
