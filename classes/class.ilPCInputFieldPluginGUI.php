@@ -67,14 +67,17 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
     public function create(): void
     {
-        global $tpl, $lng, $ilCtrl;
+        global $tpl, $lng, $ilCtrl, $DIC;
 
         $form = $this->initForm(true);
         if ($form->checkInput()) {
             
+            // Prüfe ob User Admin ist (für KI-Einstellung)
+            $is_admin = $DIC->rbac()->system()->checkAccess('visible', SYSTEM_FOLDER_ID);
+            
             $properties = array(
                 'field_name' => $form->getInput('field_name'),
-                'field_ai_enabled' => $form->getInput('field_ai_enabled') ? '1' : '0', // IMMER LESEN
+                'field_ai_enabled' => ($is_admin && $form->getInput('field_ai_enabled')) ? '1' : '0',
                 'field_type' => $form->getInput('field_type'),
                 'field_size' => $form->getInput('field_size'),
                 'field_maxlength' => $form->getInput('field_maxlength'),
@@ -109,15 +112,23 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
     public function update(): void
     {
-        global $tpl, $lng;
+        global $tpl, $lng, $DIC;
 
         $form = $this->initForm(false); // WICHTIG: false für update!
         if ($form->checkInput()) {
             $existing_properties = $this->getProperties();
             
+            // Prüfe ob User Admin ist (für KI-Einstellung)
+            $is_admin = $DIC->rbac()->system()->checkAccess('visible', SYSTEM_FOLDER_ID);
+            
+            // Wenn Nicht-Admin: Behalte existierenden KI-Wert
+            $ai_enabled_value = $is_admin 
+                ? ($form->getInput('field_ai_enabled') ? '1' : '0')
+                : ($existing_properties['field_ai_enabled'] ?? '0');
+            
             $properties = array(
                 'field_name' => $form->getInput('field_name'),
-                'field_ai_enabled' => $form->getInput('field_ai_enabled') ? '1' : '0', // IMMER LESEN
+                'field_ai_enabled' => $ai_enabled_value,
                 'field_type' => $form->getInput('field_type'),
                 'field_size' => $form->getInput('field_size'),
                 'field_maxlength' => $form->getInput('field_maxlength'),
@@ -210,12 +221,15 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         $name->setRequired(true);
         $form->addItem($name);
 
-        // *** NEUE: KI-Aktivierung für dieses Feld ***
-        $ai_enabled = new ilCheckboxInputGUI($this->txt('field_ai_enabled'), 'field_ai_enabled');
-        $ai_enabled->setInfo($this->txt('field_ai_enabled_info'));
+        // *** KI-Aktivierung für dieses Feld - NUR FÜR ADMINISTRATOREN ***
+        global $DIC;
+        $is_admin = $DIC->rbac()->system()->checkAccess('visible', SYSTEM_FOLDER_ID);
         
-        // Checkbox IMMER hinzufügen
-        $form->addItem($ai_enabled);
+        if ($is_admin) {
+            $ai_enabled = new ilCheckboxInputGUI($this->txt('field_ai_enabled'), 'field_ai_enabled');
+            $ai_enabled->setInfo($this->txt('field_ai_enabled_info'));
+            $form->addItem($ai_enabled);
+        }
 
         $type = new ilRadioGroupInputGUI($this->txt('field_type'), 'field_type');
 
@@ -278,7 +292,9 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
         if ($a_create) {
             $name->setValue('');
-            $ai_enabled->setChecked(false); // Standard: KI deaktiviert pro Feld
+            if ($is_admin) {
+                $ai_enabled->setChecked(false); // Standard: KI deaktiviert pro Feld
+            }
             $type->setValue(self::FIELD_TEXT);
             $size->setValue(50);
             $maxlength->setValue(250);
@@ -295,8 +311,10 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             $name->setValue($prop['field_name']);
             
             // WICHTIG: Prüfe ob field_ai_enabled existiert, falls nicht setze auf '0'
-            $ai_enabled_value = isset($prop['field_ai_enabled']) ? $prop['field_ai_enabled'] : '0';
-            $ai_enabled->setChecked($ai_enabled_value === '1');
+            if ($is_admin) {
+                $ai_enabled_value = isset($prop['field_ai_enabled']) ? $prop['field_ai_enabled'] : '0';
+                $ai_enabled->setChecked($ai_enabled_value === '1');
+            }
             
             $type->setValue($prop['field_type']);
             $size->setValue($prop['field_size']);
@@ -673,7 +691,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                         
                         // Zeige KI-Icon am Submit-Button wenn KI aktiviert ist
                         $submit_text = $this->plugin->txt($submit_time_raw ? 're_submit' : 'submit');
-                        if (($a_properties['field_ai_enabled'] ?? '0') === '1' && $this->getPlugin()->getSetting('ai_enabled', '0') === '1') {
+                        if (($a_properties['field_ai_enabled'] ?? '0') === '1' && $this->plugin->getSetting('ai_enabled', '0') === '1') {
                             $submit_text = '🤖 ' . $submit_text . ' (KI-Bewertung)';
                         }
                         
