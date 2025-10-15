@@ -8,9 +8,10 @@
  * PCInputField plugin: save/send input via ajax
  */
 
-// Debug bei Bedarf (während Entwicklung kurz aktivieren, sonst auslassen):
+// Debug nur bei Bedarf aktivieren (während Entwicklung):
 // error_reporting(E_ALL);
 // ini_set('display_errors', '1');
+// ini_set('log_errors', '1');
 
 chdir("../../../../../../../");
 

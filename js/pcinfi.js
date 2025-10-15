@@ -141,29 +141,73 @@ il.PCInputField = new function () {
 	this.confirm = function (send_button) {
 		//Get name of input, and data to send it to the exercise
 		var input = send_button.target.id;
-
-		var i = input.indexOf('_');
-		window.input_name = input.substr(0, i);
-		var send_info = input.substr(i + 1);
-
-		var i2 = send_info.indexOf('_');
-		window.exercise_id = send_info.substr(0, i2);
-		window.assignment_id = send_info.substr(i2 + 1);
+		
+		console.log('[PCInputField] Button clicked, ID:', input);
+		
+		// FIXED: Parse from the END to avoid issues with underscores in field names
+		// Format: fieldname_exerciseID_assignmentID
+		// We need the last two underscore-separated parts
+		var parts = input.split('_');
+		if (parts.length < 3) {
+			console.error('[PCInputField] Invalid button ID format:', input);
+			alert('Fehler: Ungültige Button-ID. Bitte Plugin-Entwickler kontaktieren.');
+			return;
+		}
+		
+		window.assignment_id = parts.pop(); // Last part
+		window.exercise_id = parts.pop();   // Second-to-last part  
+		window.input_name = parts.join('_'); // Everything else (handles underscores in field name)
+		
+		console.log('[PCInputField] Parsed:', {
+			field_name: window.input_name,
+			exercise_id: window.exercise_id,
+			assignment_id: window.assignment_id
+		});
 
 		//Get content and type of input
 		window.input_content = null;
 		window.input_type = null;
 		window.field = $("#" + window.input_name);
+		
+		console.log('[PCInputField] Looking for field with ID:', window.input_name);
+		console.log('[PCInputField] Found field element:', window.field.length > 0 ? 'YES' : 'NO');
+		console.log('[PCInputField] Field HTML:', window.field.length > 0 ? window.field[0].outerHTML.substring(0, 200) : 'N/A');
+		console.log('[PCInputField] Field parent data-field-type:', field.parent().attr('data-field-type'));
+		
+		if (window.field.length === 0) {
+			console.error('[PCInputField] Field not found! ID:', window.input_name);
+			alert('Fehler: Feld nicht gefunden. ID: ' + window.input_name);
+			return;
+		}
 
 		switch (field.parent().attr('data-field-type')) {
 			case 'text':
-				window.input_content = window.field.find('input').val();
+				// FIX: Get value directly from input element, not via .find()
+				var inputElement = window.field.find('input').first();
+				console.log('[PCInputField] Found input elements:', window.field.find('input').length);
+				if (inputElement.length === 0) {
+					// Fallback: maybe the field IS the input
+					inputElement = window.field.filter('input').first();
+					console.log('[PCInputField] Fallback - is field itself an input?', inputElement.length);
+				}
+				if (inputElement.length === 0) {
+					// Last resort: find by name attribute
+					inputElement = $('input[name="' + window.input_name + '"]').first();
+					console.log('[PCInputField] Last resort - find by name:', inputElement.length);
+				}
+				window.input_content = inputElement.val() || '';
 				window.input_type = 'text';
+				console.log('[PCInputField] Text field value:', window.input_content, '(from', inputElement.length, 'element(s))');
 				break;
 
 			case 'textarea':
-				window.input_content = window.field.find('textarea').val();
+				var textareaElement = window.field.find('textarea').first();
+				if (textareaElement.length === 0) {
+					textareaElement = window.field.filter('textarea').first();
+				}
+				window.input_content = textareaElement.val() || '';
 				window.input_type = 'textarea';
+				console.log('[PCInputField] Textarea value:', window.input_content, '(from', textareaElement.length, 'element(s))');
 				break;
 
 			case 'select':
@@ -172,6 +216,7 @@ il.PCInputField = new function () {
 					window.input_content[index] = $(this).val();
 				});
 				window.input_type = 'select';
+				console.log('[PCInputField] Select values:', window.input_content);
 				break;
 		}
 
@@ -179,6 +224,14 @@ il.PCInputField = new function () {
 	}
 
 	this.send = function () {
+		console.log('[PCInputField] Sending to server:', {
+			field: window.input_name,
+			type: window.input_type,
+			value: window.input_content,
+			exercise: window.exercise_id,
+			assignment: window.assignment_id
+		});
+		
 		// show loader
 		self.savings++;
 		window.field.parent().find('.pcinfi-loader').css('visibility', 'visible');
@@ -207,6 +260,8 @@ il.PCInputField = new function () {
 			dataType: 'json'
 		})
 			.done(function (resp) {
+				console.log('[PCInputField] Server response:', resp);
+				
 				self.savings--;
 				if (self.savings <= 0) {
 					window.field.parent().find('.pcinfi-loader').css('visibility', 'hidden');
@@ -217,8 +272,27 @@ il.PCInputField = new function () {
 				$('input#' + window.input_name + '_' + window.exercise_id + '_' + window.assignment_id)
 					.attr('value', texts.re_submit);
 				$("#pcinfi_" + input_name + "_confirmation").modal('hide');
+				
+				console.log('[PCInputField] Success! Reloading page in 500ms...');
+				
+				// *** RELOAD PAGE to show updated status and AI feedback ***
+				// Use hard reload to bypass form cache
+				setTimeout(function() {
+					// Add timestamp to force fresh load
+					var url = window.location.href.split('?')[0];
+					var params = new URLSearchParams(window.location.search);
+					params.set('t', Date.now()); // Force cache bypass
+					window.location.href = url + '?' + params.toString();
+				}, 500); // Short delay to ensure modal closes smoothly
 			})
 			.fail(function (jqXHR, textStatus, errorThrown) {
+				console.error('[PCInputField] AJAX Error:', {
+					status: jqXHR.status,
+					textStatus: textStatus,
+					errorThrown: errorThrown,
+					response: jqXHR.responseText
+				});
+				
 				self.savings--;
 				if (self.savings <= 0) {
 					window.field.parent().find('.pcinfi-loader').css('visibility', 'hidden');

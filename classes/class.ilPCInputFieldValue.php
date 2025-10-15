@@ -135,7 +135,7 @@ class ilPCInputFieldValue
      */
     public function save()
     {
-        global $ilDB;
+        global $ilDB, $DIC;
 
         if (empty($this->context_type) or empty($this->context_id) or empty($this->user_id) or empty($this->field_name))
         {
@@ -145,6 +145,22 @@ class ilPCInputFieldValue
         {
             $this->id = $ilDB->nextId('pcinfi_values');
         }
+        
+        // DEBUG: Log what we're saving (can be removed in production)
+        if (isset($DIC)) {
+            try {
+                $DIC->logger()->root()->debug(
+                    '[PCInputField] Saving value: ' . 
+                    'context=' . $this->context_type . ':' . $this->context_id . 
+                    ', user=' . $this->user_id . 
+                    ', field=' . $this->field_name . 
+                    ', value=' . substr($this->field_value ?? '', 0, 100)
+                );
+            } catch (Exception $e) {
+                // Logger nicht verfügbar, ignorieren
+            }
+        }
+        
         $ilDB->replace('pcinfi_values',
             array(
                 'id' => array('integer', $this->id)

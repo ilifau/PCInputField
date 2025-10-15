@@ -450,10 +450,12 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
     public function getElementHTML(string $a_mode, array $a_properties, string $a_plugin_version): string
     {
-        global $ilUser, $lng, $tpl;
+        global $ilUser, $lng, $tpl, $DIC;
 
         $context_type = $a_properties['field_context'];
         $context_id = $this->getContextId($context_type, $a_mode);
+        
+        $DIC->logger()->root()->debug('[PCInputField] getElementHTML START: mode=' . $a_mode . ', context=' . $context_type . ':' . $context_id . ', field=' . $a_properties['field_name']);
 
         require_once $this->getPlugin()->getDirectory() . '/classes/class.ilPCInputFieldValue.php';
         $valObj = ilPCInputFieldValue::getByKeys($context_type, $context_id, $ilUser->getId(), $a_properties['field_name'], false);
@@ -464,6 +466,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             } else {
                 $value = '';
             }
+            $DIC->logger()->root()->debug('[PCInputField] getElementHTML: NO VALUE FOUND for field=' . $a_properties['field_name']);
         } else {
             if ($a_properties['field_type'] == self::FIELD_SELECT && $a_properties['select_type'] == self::SELECT_MULTI) {
                 try {
@@ -474,6 +477,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             } else {
                 $value = $valObj->field_value;
             }
+            $DIC->logger()->root()->debug('[PCInputField] getElementHTML: LOADED value for field=' . $a_properties['field_name'] . ', value=' . substr($value ?? '', 0, 50));
         }
 
         $ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
@@ -483,7 +487,9 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             $tpl->addOnLoadCode('il.PCInputField.init(' . json_encode($this->getJSTexts()) . ');');
         }
 
-        $name = rand(0, 9999999);
+        // Use field_name as base for consistent ID, but keep compatible with existing JS parsing logic
+        // JS expects format: NAME_exerciseID_assignmentID for submit buttons
+        $name = preg_replace('/[^a-zA-Z0-9_]/', '_', $a_properties['field_name']);
 
         if ($a_mode == self::MODE_EDIT) {
             $ctpl->setCurrentBlock('edit');
@@ -527,7 +533,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     $ctpl->setVariable('NAME', $name);
                     $ctpl->setVariable('COLS', $a_properties['field_cols']);
                     $ctpl->setVariable('ROWS', $a_properties['field_rows']);
-                    $ctpl->setVariable('VALUE', htmlspecialchars($value, ENT_QUOTES, 'UTF-8'));
+                    $ctpl->setVariable('VALUE', htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8'));
                     $ctpl->parseCurrentBlock();
                     break;
 

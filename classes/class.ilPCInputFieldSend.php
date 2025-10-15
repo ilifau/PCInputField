@@ -147,9 +147,18 @@ class ilPCInputFieldSend
 
     // *** KI-BEWERTUNG INS FEEDBACK (nur wenn aktiviert) ***
     if ($this->field_ai_enabled) {
+        global $DIC;
+        $DIC->logger()->root()->info('[PCInputField] KI-Bewertung wird gestartet für field_value: ' . substr($this->field_value, 0, 50));
+        
         require_once(dirname(__FILE__) . '/class.ilPCInputFieldAIRating.php');
         $ai_result = ilPCInputFieldAIRating::evaluateText($this->field_value);
+        
+        $DIC->logger()->root()->info('[PCInputField] KI-Bewertung Ergebnis: success=' . ($ai_result['success'] ? 'YES' : 'NO'));
+        
         $this->setAIFeedback($assignment, $this->user_id, $ai_result);
+    } else {
+        global $DIC;
+        $DIC->logger()->root()->info('[PCInputField] KI-Bewertung ÜBERSPRUNGEN (field_ai_enabled=false)');
     }
 
     // Exercise-Status aktualisieren

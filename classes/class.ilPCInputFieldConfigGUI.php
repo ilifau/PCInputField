@@ -9,6 +9,8 @@
 include_once("./Services/Component/classes/class.ilPluginConfigGUI.php");
 
 /**
+ * @ilCtrl_isCalledBy ilPCInputFieldConfigGUI: ilObjComponentSettingsGUI
+ *
  * Page Component Input Field plugin configuration GUI
  *
  * @author Fred Neumann <fred.neumann@fau.de>

@@ -69,6 +69,7 @@ class ilPCInputFieldService
         global $ilUser, $DIC;
 
         require_once $this->plugin_path . '/classes/class.ilPCInputFieldSend.php';
+        require_once $this->plugin_path . '/classes/class.ilPCInputFieldValue.php';
 
         $field_name    = ilUtil::stripSlashes($_POST['name'] ?? '');
         $field_type    = ilUtil::stripSlashes($_POST['type'] ?? '');
@@ -77,6 +78,9 @@ class ilPCInputFieldService
         $select_type   = ilUtil::stripSlashes($_GET['select_type'] ?? self::SELECT_SINGLE);
 
         $field_ai_enabled = $this->getFieldAIEnabled($field_name);
+        
+        // DEBUG
+        $DIC->logger()->root()->info('[PCInputField] sendInput called: field=' . $field_name . ', ai_enabled=' . ($field_ai_enabled ? 'YES' : 'NO'));
 
         $sendObj = ilPCInputFieldSend::init($ilUser->getId(), $field_name, $field_type, $exercise_id, $assignment_id);
         if (!($sendObj instanceof ilPCInputFieldSend)) {
@@ -104,10 +108,20 @@ class ilPCInputFieldService
 
         try {
             if ($submit_time_str = $sendObj->send()) {
+                // *** WICHTIG: Auch in pcinfi_values speichern, damit nach Reload der Wert sichtbar ist ***
+                $context_type = ilUtil::stripSlashes($_GET['context_type'] ?? '');
+                $context_id   = ilUtil::stripSlashes($_GET['context_id'] ?? '');
+                
+                $DIC->logger()->root()->info('[PCInputField] sendInput SUCCESS - Saving to DB: context=' . $context_type . ':' . $context_id . ', field=' . $field_name . ', value=' . substr($sendObj->field_value, 0, 50));
+                
+                $valObj = ilPCInputFieldValue::getByKeys($context_type, $context_id, $ilUser->getId(), $field_name, true);
+                $valObj->field_value = $sendObj->field_value;
+                $valObj->save();
+                
+                $DIC->logger()->root()->info('[PCInputField] Value saved with ID=' . $valObj->id);
+                
                 // *** Merker setzen: gerade gesendet (Race-Protection für saveInput) ***
-                $ctx_type = ilUtil::stripSlashes($_GET['context_type'] ?? '');
-                $ctx_id   = ilUtil::stripSlashes($_GET['context_id'] ?? '');
-                $key = implode(':', [(int)$ilUser->getId(), $ctx_type, $ctx_id, $field_name]);
+                $key = implode(':', [(int)$ilUser->getId(), $context_type, $context_id, $field_name]);
                 if (!isset($_SESSION)) {
                     @session_start();
                 }
@@ -129,7 +143,7 @@ class ilPCInputFieldService
      */
     protected function saveInput()
     {
-        global $ilUser;
+        global $ilUser, $DIC;
         require_once $this->plugin_path . '/classes/class.ilPCInputFieldValue.php';
 
         $context_type = ilUtil::stripSlashes($_GET['context_type'] ?? '');
@@ -137,6 +151,8 @@ class ilPCInputFieldService
         $field_name   = ilUtil::stripSlashes($_GET['field_name'] ?? '');
         $field_type   = ilUtil::stripSlashes($_GET['field_type'] ?? '');
         $select_type  = ilUtil::stripSlashes($_GET['select_type'] ?? self::SELECT_SINGLE);
+
+        $DIC->logger()->root()->debug('[PCInputField] saveInput: context=' . $context_type . ':' . $context_id . ', field=' . $field_name);
 
         // create if not exists (ohne zu überschreiben)
         $valObj = ilPCInputFieldValue::getByKeys($context_type, $context_id, $ilUser->getId(), $field_name, true);
@@ -204,16 +220,23 @@ class ilPCInputFieldService
             // 1) Globales Flag
             $settings = $DIC->settings();
             $global_ai_enabled = $settings->get('pcinfi_ai_enabled', '0') === '1';
+            
+            $DIC->logger()->root()->debug('[PCInputField] Global AI enabled: ' . ($global_ai_enabled ? 'YES' : 'NO'));
+            
             if (!$global_ai_enabled) {
                 return false;
             }
 
             // 2) Feld-Flag aus URL (SERVICE_URL hängt field_ai_enabled=0/1 an)
             $field_flag = ilUtil::stripSlashes($_GET['field_ai_enabled'] ?? '0');
+            
+            $DIC->logger()->root()->debug('[PCInputField] Field AI flag from GET: ' . $field_flag);
+            
             return $field_flag === '1';
         } catch (Throwable $e) {
             // Fallback: nur globales Flag
             global $DIC;
+            $DIC->logger()->root()->warning('[PCInputField] Error in getFieldAIEnabled: ' . $e->getMessage());
             return $DIC->settings()->get('pcinfi_ai_enabled', '0') === '1';
         }
     }
