@@ -15,33 +15,53 @@ class ilPCInputFieldAIRating
      */
     public static function evaluateText($content)
     {
-        // Hole Settings direkt über DIC
-
         error_log('[PCInputField AI] evaluateText() aufgerufen mit: ' . substr($content, 0, 50));
-        file_put_contents('/tmp/pcinfi_debug.log', date('Y-m-d H:i:s') . " - evaluateText aufgerufen\n", FILE_APPEND);
+
         global $DIC;
+
+        // Lade Plugin-Konfiguration - WICHTIG: Settings haben 'pcinfi_' Präfix!
         $settings = $DIC->settings();
 
-        $ai_enabled   = $settings->get('pcinfi_ai_enabled', '0') === '1';
+        $ai_enabled = $settings->get('pcinfi_ai_enabled', '0') === '1';
         if (!$ai_enabled) {
             return ['success' => false, 'message' => 'KI-Bewertung ist nicht aktiviert'];
         }
 
-        $endpoint_url = $settings->get('pcinfi_ai_endpoint_url', '');
-        $api_key      = $settings->get('pcinfi_ai_api_key', '');
-        $model        = $settings->get('pcinfi_ai_model', 'gpt-4');
-        $system_prompt = $settings->get('pcinfi_ai_system_prompt', '');
-        $max_tokens   = (int)$settings->get('pcinfi_ai_max_tokens', 300);
-        $temperature  = (float)$settings->get('pcinfi_ai_temperature', 0.3);
+        $ai_provider = $settings->get('pcinfi_ai_provider', 'lmstudio');
+        $system_prompt = $settings->get('pcinfi_ai_prompt', '');
+        $max_tokens = (int)$settings->get('pcinfi_max_tokens', 500);
+        $temperature = (float)$settings->get('pcinfi_ai_temperature', 0.3);
+        $timeout = (int)$settings->get('pcinfi_api_timeout', 30);
+
+        error_log('[PCInputField AI] Provider: ' . $ai_provider);
+
+        // Provider-spezifische Konfiguration
+        if ($ai_provider === 'chatgpt') {
+            $endpoint_url = 'https://api.openai.com/v1/chat/completions';
+            $api_key = $settings->get('pcinfi_openai_api_key', '');
+            $model = $settings->get('pcinfi_openai_model', 'gpt-4o-mini');
+
+            error_log('[PCInputField AI] ChatGPT - Model: ' . $model . ', Key length: ' . strlen($api_key));
+
+            if (empty($api_key)) {
+                return ['success' => false, 'message' => 'OpenAI API Key ist nicht konfiguriert'];
+            }
+        } else {
+            // LM Studio (default)
+            $endpoint_url = $settings->get('pcinfi_lm_endpoint_url', 'http://localhost:1234/v1/chat/completions');
+            $api_key = ''; // LM Studio benötigt keinen API Key
+            $model = $settings->get('pcinfi_lm_model', 'qwen2.5-14b-instruct');
+
+            error_log('[PCInputField AI] LM Studio - Model: ' . $model);
+        }
 
         if (empty($endpoint_url)) {
             return ['success' => false, 'message' => 'KI-Endpoint URL ist nicht konfiguriert'];
         }
 
-
         try {
             // Führe KI-Bewertung durch
-            $result = self::callAI($endpoint_url, $api_key, $model, $system_prompt, $content, $max_tokens, $temperature);
+            $result = self::callAI($endpoint_url, $api_key, $model, $system_prompt, $content, $max_tokens, $temperature, $timeout);
 
             if ($result['success']) {
                 return array(
@@ -57,7 +77,6 @@ class ilPCInputFieldAIRating
                 );
             }
         } catch (Exception $e) {
-            global $DIC;
             $DIC->logger()->error('KI-Bewertung fehlgeschlagen: ' . $e->getMessage());
 
             return array(
@@ -70,7 +89,7 @@ class ilPCInputFieldAIRating
     /**
      * KI-API Aufruf (funktioniert mit OpenAI API und LM Studio)
      */
-    private static function callAI($endpoint_url, $api_key, $model, $system_prompt, $user_content, $max_tokens, $temperature)
+    private static function callAI($endpoint_url, $api_key, $model, $system_prompt, $user_content, $max_tokens, $temperature, $timeout = 30)
     {
         // Bereite Request vor
         $messages = array(
@@ -108,7 +127,7 @@ class ilPCInputFieldAIRating
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Für lokale LM Studio Instanzen
 
         $response = curl_exec($ch);

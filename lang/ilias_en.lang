@@ -52,17 +52,34 @@ submitted#:#Submitted
 submit_success#:#Your submission is saved.
 save_on_navigation#:#Do you want to send your input for being assessed?
 configuration#:#Configuration
-field_ai_enabled#:#Enable AI Support
-field_ai_enabled_info#:#Enables automatic AI-based evaluation for this field (visible to administrators only)
-openai_api_key#:#OpenAI API Endpoint
-openai_api_key_info#:#URL to OpenAI-compatible API endpoint (e.g., http://10.131.192.215:1234/v1/chat/completions)
-ai_model#:#AI Model
-ai_model_info#:#Name of the AI model to use (e.g., qwen2.5-14b-instruct)
+ai_enabled#:#Enable AI Support
+ai_enabled_info#:#Enables automatic AI-based evaluation for input fields
+ai_provider#:#AI Provider
+ai_provider_info#:#Choose between local AI (LM Studio) or ChatGPT (OpenAI)
+ai_provider_lmstudio#:#LM Studio (local)
+ai_provider_lmstudio_info#:#Uses a locally installed AI via LM Studio
+lm_endpoint_url#:#LM Studio Endpoint URL
+lm_endpoint_url_info#:#URL to LM Studio API endpoint (default: http://localhost:1234/v1/chat/completions)
+lm_model#:#LM Studio Model
+lm_model_info#:#Name of the locally loaded model (e.g., qwen2.5-14b-instruct, llama-3-8b)
+ai_provider_chatgpt#:#ChatGPT (OpenAI)
+ai_provider_chatgpt_info#:#Uses the OpenAI ChatGPT API (paid service, internet connection required)
+openai_api_key#:#OpenAI API Key
+openai_api_key_info#:#Your OpenAI API key (available at https://platform.openai.com/api-keys)
+openai_model#:#ChatGPT Model
+openai_model_info#:#Which OpenAI model to use? GPT-4o-mini is the most cost-effective.
 ai_prompt#:#AI Evaluation Prompt
 ai_prompt_info#:#System prompt for AI evaluation. Use {answer} as placeholder for student answer.
 max_tokens#:#Maximum Token Count
 max_tokens_info#:#Maximum number of tokens in AI response (recommended: 500)
+ai_temperature#:#Temperature
+ai_temperature_info#:#Creativity of AI responses (0.0 = deterministic, 2.0 = very creative, recommended: 0.3)
 api_timeout#:#API Timeout (Seconds)
 api_timeout_info#:#Maximum wait time for AI API responses in seconds (recommended: 30)
 debug_mode#:#Enable Debug Mode
 debug_mode_info#:#Enables extended logging output for troubleshooting
+test_connection#:#Test Connection
+test_connection_success#:#AI connection successful!
+test_connection_failed#:#AI connection failed
+test_response#:#AI Response
+error#:#Error

@@ -230,22 +230,22 @@ class ilPCInputFieldSend
         if ($ai_result['success']) {
 
             if (isset($ai_result['score'])) {
-                $feedback_text .= "🤖 Automatische Bewertung: " . $ai_result['score'] . "/100 Punkte\n\n";
+                $feedback_text .= "Automatische Bewertung: " . $ai_result['score'] . "/100 Punkte\n\n";
             }
 
             if (isset($ai_result['feedback'])) {
-                $feedback_text .= "📝 KI-Feedback:\n" . $ai_result['feedback'] . "\n\n";
+                $feedback_text .= "KI-Feedback:\n" . $ai_result['feedback'] . "\n\n";
             }
 
-            $feedback_text .= "⏰ Bewertungszeitpunkt: " . date('d.m.Y H:i:s') . "\n";
-            $feedback_text .= "ℹ️ Dies ist eine automatische Vorbewertung zur Orientierung.\n";
-            $feedback_text .= "📋 Eine manuelle Nachbewertung durch den Dozenten ist möglich.\n\n";
+            $feedback_text .= "Bewertungszeitpunkt: " . date('d.m.Y H:i:s') . "\n";
+            $feedback_text .= "Dies ist eine automatische Vorbewertung zur Orientierung.\n";
+            $feedback_text .= "Eine manuelle Nachbewertung durch den Dozenten ist möglich.\n\n";
 
             $feedback_text .= "--- Platz für Dozenten-Feedback ---\n\n";
         } else {
-            $feedback_text .= "❌ Automatische Bewertung nicht verfügbar\n";
+            $feedback_text .= "Automatische Bewertung nicht verfügbar\n";
             $feedback_text .= "Grund: " . $ai_result['message'] . "\n\n";
-            $feedback_text .= "📝 Manuelle Bewertung erforderlich.\n\n";
+            $feedback_text .= "Manuelle Bewertung erforderlich.\n\n";
         }
 
         return $feedback_text;

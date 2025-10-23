@@ -52,17 +52,34 @@ submitted#:#Eingereicht
 submit_success#:#Ihre Einreichung wurde übernommen.
 save_on_navigation#:#Möchten Sie Ihre Eingabe zur Bewertung einreichen?
 configuration#:#Konfiguration
-field_ai_enabled#:#KI-Unterstützung aktivieren
-field_ai_enabled_info#:#Aktiviert automatische KI-basierte Bewertung für dieses Feld (nur für Administratoren sichtbar)
-openai_api_key#:#OpenAI API Endpoint
-openai_api_key_info#:#URL zum OpenAI-kompatiblen API-Endpoint
-ai_model#:#AI Modell
-ai_model_info#:#Name des zu verwendenden AI-Modells (z.B. qwen2.5-14b-instruct)
-ai_prompt#:#AI Bewertungs-Prompt
+ai_enabled#:#KI-Unterstützung aktivieren
+ai_enabled_info#:#Aktiviert automatische KI-basierte Bewertung für Eingabefelder
+ai_provider#:#KI-Anbieter
+ai_provider_info#:#Wählen Sie zwischen lokaler KI (LM Studio) oder ChatGPT (OpenAI)
+ai_provider_lmstudio#:#LM Studio (lokal)
+ai_provider_lmstudio_info#:#Nutzt eine lokal installierte KI über LM Studio
+lm_endpoint_url#:#LM Studio Endpoint URL
+lm_endpoint_url_info#:#URL zum LM Studio API-Endpoint (Standard: http://localhost:1234/v1/chat/completions)
+lm_model#:#LM Studio Modell
+lm_model_info#:#Name des lokal geladenen Modells (z.B. qwen2.5-14b-instruct, llama-3-8b)
+ai_provider_chatgpt#:#ChatGPT (OpenAI)
+ai_provider_chatgpt_info#:#Nutzt die OpenAI ChatGPT API (kostenpflichtig, Internet-Verbindung erforderlich)
+openai_api_key#:#OpenAI API Key
+openai_api_key_info#:#Ihr OpenAI API-Schlüssel (erhältlich unter https://platform.openai.com/api-keys)
+openai_model#:#ChatGPT Modell
+openai_model_info#:#Welches OpenAI Modell soll verwendet werden? GPT-4o-mini ist am günstigsten.
+ai_prompt#:#KI Bewertungs-Prompt
 ai_prompt_info#:#Systemprompt für die KI-Bewertung. Verwenden Sie {answer} als Platzhalter für die Studenten-Antwort.
 max_tokens#:#Maximale Token-Anzahl
 max_tokens_info#:#Maximale Anzahl der Tokens in der KI-Antwort (empfohlen: 500)
+ai_temperature#:#Temperature
+ai_temperature_info#:#Kreativität der KI-Antworten (0.0 = deterministisch, 2.0 = sehr kreativ, empfohlen: 0.3)
 api_timeout#:#API Timeout (Sekunden)
 api_timeout_info#:#Maximale Wartezeit für KI-API-Antworten in Sekunden (empfohlen: 30)
 debug_mode#:#Debug-Modus aktivieren
 debug_mode_info#:#Aktiviert erweiterte Logging-Ausgaben für Fehlersuche
+test_connection#:#Verbindung testen
+test_connection_success#:#KI-Verbindung erfolgreich!
+test_connection_failed#:#KI-Verbindung fehlgeschlagen
+test_response#:#KI-Antwort
+error#:#Fehler
