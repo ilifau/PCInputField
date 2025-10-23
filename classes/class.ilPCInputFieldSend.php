@@ -238,8 +238,6 @@ class ilPCInputFieldSend
             }
 
             $feedback_text .= "Bewertungszeitpunkt: " . date('d.m.Y H:i:s') . "\n";
-            $feedback_text .= "Dies ist eine automatische Vorbewertung zur Orientierung.\n";
-            $feedback_text .= "Eine manuelle Nachbewertung durch den Dozenten ist möglich.\n\n";
 
             $feedback_text .= "--- Platz für Dozenten-Feedback ---\n\n";
         } else {
