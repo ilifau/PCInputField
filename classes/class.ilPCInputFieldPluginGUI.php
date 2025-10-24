@@ -495,7 +495,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             } else {
                 $value = $valObj->field_value;
             }
-            $DIC->logger()->root()->debug('[PCInputField] getElementHTML: LOADED value for field=' . $a_properties['field_name'] . ', value=' . substr($value ?? '', 0, 50));
+            $logValue = is_array($value) ? json_encode($value) : ($value ?? '');
+            $DIC->logger()->root()->debug('[PCInputField] getElementHTML: LOADED value for field=' . $a_properties['field_name'] . ', value=' . substr($logValue, 0, 50));
         }
 
         $ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
