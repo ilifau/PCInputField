@@ -690,10 +690,10 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                         $ctpl->setCurrentBlock('submission');
                         $ctpl->setVariable('BUTTON_ID', $name . '_' . $selected_assignment->getExerciseId() . '_' . $selected_assignment->getId());
                         
-                        // Zeige KI-Icon am Submit-Button wenn KI aktiviert ist
+                        // Zeige KI-Text am Submit-Button wenn KI aktiviert ist
                         $submit_text = $this->plugin->txt($submit_time_raw ? 're_submit' : 'submit');
                         if (($a_properties['field_ai_enabled'] ?? '0') === '1' && $this->plugin->getSetting('ai_enabled', '0') === '1') {
-                            $submit_text = '🤖 ' . $submit_text . ' (KI-Bewertung)';
+                            $submit_text = $submit_text . ' (KI-Bewertung)';
                         }
                         
                         $ctpl->setVariable('VALUE', $submit_text);
@@ -768,8 +768,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
             // Marker-Prüfung weicher machen (zur Sicherheit alles anzeigen)
             $is_ai = (stripos($feedback_text_raw, 'KI-VORBEWERTUNG') !== false)
-                  || (stripos($feedback_text_raw, 'KI-Feedback') !== false)
-                  || (stripos($feedback_text_raw, '🤖') !== false);
+                  || (stripos($feedback_text_raw, 'KI-Feedback') !== false);
 
             if (!$is_ai) {
                 return; // kein KI-Feedback, still bleiben
@@ -789,7 +788,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             // HTML vorbereiten (einfach, ohne Child-Blöcke)
             $score_html = '';
             if ($score !== null && $score !== '') {
-                $score_html = '<div class="ai-score"><strong>🤖 Automatische Bewertung:</strong> '
+                $score_html = '<div class="ai-score"><strong>Automatische Bewertung:</strong> '
                             . htmlspecialchars((string)$score, ENT_QUOTES, 'UTF-8')
                             . '/100</div>';
             }
@@ -824,7 +823,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         $feedback = '';
 
         // Extrahiere Score
-        if (preg_match('/🤖 Automatische Bewertung:\s*(\d+)\/100 Punkte/i', $feedback_text, $matches)) {
+        if (preg_match('/Automatische Bewertung:\s*(\d+)\/100 Punkte/i', $feedback_text, $matches)) {
             $score = $matches[1];
         }
 
