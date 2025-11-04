@@ -227,18 +227,21 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
      */
     private function getDefaultPrompt(): string
     {
-        return "Bewerte die folgende Antwort eines Studenten auf einer Skala von 0-100 Punkten.
+        return "Analysiere die folgende Antwort eines Studenten und gib konstruktives Feedback.
 
-Gib eine strukturierte Bewertung aus mit:
-1. Einer Punktzahl (0-100)
-2. Konstruktivem Feedback zur Antwort
-3. Verbesserungsvorschlägen
+Beachte dabei:
+- Inhaltliche Korrektheit und Vollständigkeit
+- Verständlichkeit und Struktur der Antwort
+- Stärken der Antwort
+- Verbesserungspotenzial und konkrete Vorschläge
 
 Antwort des Studenten:
 {answer}
 
-Antworte im folgenden Format:
-Punkte: [0-100]
+Gib ein ausführliches, hilfreiches Feedback.
+
+Optional kannst du eine Punktzahl (0-100) angeben, wenn du dies für sinnvoll hältst:
+Format: Punkte: [0-100]
 Feedback: [Dein ausführliches Feedback]";
     }
 }

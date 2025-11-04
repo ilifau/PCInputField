@@ -175,8 +175,16 @@ class ilPCInputFieldAIRating
         $score = null;
         $feedback = $ai_response;
 
-        // Versuche Score zu extrahieren
+        // Versuche Score zu extrahieren (nur wenn explizit vorhanden)
         if (preg_match('/SCORE:\s*(\d+)/i', $ai_response, $matches)) {
+            $score = min(100, max(0, (int)$matches[1]));
+        }
+        // Alternative Formate für Score
+        elseif (preg_match('/(?:Punkte|Punktzahl|Score|Points):\s*(\d+)/i', $ai_response, $matches)) {
+            $score = min(100, max(0, (int)$matches[1]));
+        }
+        // Format: "X/100" oder "X von 100"
+        elseif (preg_match('/(\d+)\s*(?:\/|von)\s*100/i', $ai_response, $matches)) {
             $score = min(100, max(0, (int)$matches[1]));
         }
 
@@ -184,19 +192,18 @@ class ilPCInputFieldAIRating
         if (preg_match('/FEEDBACK:\s*(.*)/is', $ai_response, $matches)) {
             $feedback = trim($matches[1]);
         }
-
-        // Fallback: Wenn kein strukturiertes Format gefunden wird
-        if ($score === null) {
-            // Versuche Zahlen in der Antwort zu finden
-            if (preg_match('/(\d+)\s*(?:\/\s*100|\s*Punkte|\s*points)/i', $ai_response, $matches)) {
-                $score = min(100, max(0, (int)$matches[1]));
-            } else {
-                $score = 50; // Default falls nichts gefunden wird
-            }
+        // Alternative: Falls Score gefunden wurde, entferne die Score-Zeile aus dem Feedback
+        elseif ($score !== null) {
+            // Entferne Score-Zeilen aus dem Feedback
+            $feedback = preg_replace('/^.*(?:Punkte|Punktzahl|Score|Points):\s*\d+.*$/im', '', $ai_response);
+            $feedback = preg_replace('/^\d+\s*(?:\/|von)\s*100.*$/im', '', $feedback);
+            $feedback = trim($feedback);
         }
 
+        // WICHTIG: Kein Fallback-Score mehr! Score bleibt null wenn nicht explizit angegeben
+
         return array(
-            'score' => $score,
+            'score' => $score,  // kann null sein!
             'feedback' => $feedback
         );
     }

@@ -229,11 +229,12 @@ class ilPCInputFieldSend
 
         if ($ai_result['success']) {
 
-            if (isset($ai_result['score'])) {
+            // Score nur anzeigen, wenn er auch wirklich von der KI geliefert wurde (nicht null)
+            if (isset($ai_result['score']) && $ai_result['score'] !== null) {
                 $feedback_text .= "Automatische Bewertung: " . $ai_result['score'] . "/100 Punkte\n\n";
             }
 
-            if (isset($ai_result['feedback'])) {
+            if (isset($ai_result['feedback']) && !empty($ai_result['feedback'])) {
                 $feedback_text .= "KI-Feedback:\n" . $ai_result['feedback'] . "\n\n";
             }
 
