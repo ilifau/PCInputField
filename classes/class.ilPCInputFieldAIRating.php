@@ -103,12 +103,21 @@ class ilPCInputFieldAIRating
             )
         );
 
+        // GPT-5 Modelle verwenden max_completion_tokens statt max_tokens
+        $is_gpt5_model = strpos($model, 'gpt-5') !== false;
+
         $data = array(
             'model' => $model,
             'messages' => $messages,
-            'max_tokens' => $max_tokens,
             'temperature' => $temperature
         );
+
+        // Verwende den richtigen Parameter je nach Modell
+        if ($is_gpt5_model) {
+            $data['max_completion_tokens'] = $max_tokens;
+        } else {
+            $data['max_tokens'] = $max_tokens;
+        }
 
         // Headers
         $headers = array(
