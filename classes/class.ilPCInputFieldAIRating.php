@@ -39,7 +39,7 @@ class ilPCInputFieldAIRating
         if ($ai_provider === 'chatgpt') {
             $endpoint_url = 'https://api.openai.com/v1/chat/completions';
             $api_key = $settings->get('pcinfi_openai_api_key', '');
-            $model = $settings->get('pcinfi_openai_model', 'gpt-4o-mini');
+            $model = $settings->get('pcinfi_openai_model', 'gpt-5-mini');
 
             error_log('[PCInputField AI] ChatGPT - Model: ' . $model . ', Key length: ' . strlen($api_key));
 

@@ -95,13 +95,13 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         $openai_model = new ilSelectInputGUI($this->plugin_object->txt("openai_model"), "openai_model");
         $openai_model->setInfo($this->plugin_object->txt("openai_model_info"));
         $openai_model->setOptions([
-            'gpt-4o' => 'GPT-4o (empfohlen)',
-            'gpt-4o-mini' => 'GPT-4o Mini (günstiger)',
+            'gpt-5' => 'GPT-5 (empfohlen)',
+            'gpt-5-mini' => 'GPT-5 Mini (ausgewogen)',
+            'gpt-5-nano' => 'GPT-5 Nano (günstiger, schneller)',
             'gpt-4-turbo' => 'GPT-4 Turbo',
-            'gpt-4' => 'GPT-4',
-            'gpt-3.5-turbo' => 'GPT-3.5 Turbo'
+            'gpt-4' => 'GPT-4'
         ]);
-        $openai_model->setValue($this->plugin_object->getSetting('openai_model', 'gpt-4o-mini'));
+        $openai_model->setValue($this->plugin_object->getSetting('openai_model', 'gpt-5-mini'));
         $chatgpt->addSubItem($openai_model);
 
         $ai_provider->addOption($chatgpt);
