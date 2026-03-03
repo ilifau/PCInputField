@@ -29,9 +29,9 @@ class ilPCInputFieldAIRating
 
         $ai_provider = $settings->get('pcinfi_ai_provider', 'lmstudio');
         $system_prompt = $settings->get('pcinfi_ai_prompt', '');
-        $max_tokens = (int)$settings->get('pcinfi_max_tokens', 500);
+        $max_tokens = (int)$settings->get('pcinfi_max_tokens', 2000);
         $temperature = (float)$settings->get('pcinfi_ai_temperature', 0.3);
-        $timeout = (int)$settings->get('pcinfi_api_timeout', 30);
+        $timeout = (int)$settings->get('pcinfi_api_timeout', 60);
 
         error_log('[PCInputField AI] Provider: ' . $ai_provider);
 
@@ -129,6 +129,9 @@ class ilPCInputFieldAIRating
             $headers[] = 'Authorization: Bearer ' . $api_key;
         }
 
+        // Debug: Log request data
+        error_log('[PCInputField AI] Request data: ' . json_encode($data));
+
         // cURL Request
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $endpoint_url);
@@ -143,11 +146,17 @@ class ilPCInputFieldAIRating
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         if (curl_error($ch)) {
+            $error = curl_error($ch);
             curl_close($ch);
-            throw new Exception('cURL Error: ' . curl_error($ch));
+            error_log('[PCInputField AI] cURL Error: ' . $error);
+            throw new Exception('cURL Error: ' . $error);
         }
 
         curl_close($ch);
+
+        // Debug: Log response
+        error_log('[PCInputField AI] HTTP Code: ' . $http_code);
+        error_log('[PCInputField AI] Response: ' . substr($response, 0, 500));
 
         if ($http_code !== 200) {
             throw new Exception('HTTP Error ' . $http_code . ': ' . $response);
@@ -155,12 +164,16 @@ class ilPCInputFieldAIRating
 
         $response_data = json_decode($response, true);
         if ($response_data === null) {
+            error_log('[PCInputField AI] JSON decode error: ' . json_last_error_msg());
             throw new Exception('Invalid JSON from AI endpoint: ' . json_last_error_msg());
         }
 
+        // Debug: Log decoded response structure
+        error_log('[PCInputField AI] Response structure: ' . json_encode(array_keys($response_data)));
 
         if (!isset($response_data['choices'][0]['message']['content'])) {
-            throw new Exception('Invalid API response: ' . $response);
+            error_log('[PCInputField AI] Invalid response structure: ' . json_encode($response_data));
+            throw new Exception('Invalid API response structure. Response: ' . json_encode($response_data));
         }
 
         $ai_response = $response_data['choices'][0]['message']['content'];

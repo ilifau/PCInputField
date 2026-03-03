@@ -231,7 +231,11 @@ il.PCInputField = new function () {
 			exercise: window.exercise_id,
 			assignment: window.assignment_id
 		});
-		
+
+		// Zeige Ladebalken im Modal
+		$('#pcinfi_loading_indicator').show();
+		$('#pcinfi_modal_buttons').hide();
+
 		// show loader
 		self.savings++;
 		window.field.parent().find('.pcinfi-loader').css('visibility', 'visible');
@@ -261,11 +265,15 @@ il.PCInputField = new function () {
 		})
 			.done(function (resp) {
 				console.log('[PCInputField] Server response:', resp);
-				
+
 				self.savings--;
 				if (self.savings <= 0) {
 					window.field.parent().find('.pcinfi-loader').css('visibility', 'hidden');
 				}
+
+				// Verstecke Ladebalken und zeige Buttons wieder
+				$('#pcinfi_loading_indicator').hide();
+				$('#pcinfi_modal_buttons').show();
 
 				var ts = (resp && resp.submit_time_str) ? resp.submit_time_str : '';
 				$('#status_' + window.input_name).html(texts.submitted + ' ' + ts);
@@ -292,7 +300,11 @@ il.PCInputField = new function () {
 					errorThrown: errorThrown,
 					response: jqXHR.responseText
 				});
-				
+
+				// Verstecke Ladebalken und zeige Buttons wieder bei Fehler
+				$('#pcinfi_loading_indicator').hide();
+				$('#pcinfi_modal_buttons').show();
+
 				self.savings--;
 				if (self.savings <= 0) {
 					window.field.parent().find('.pcinfi-loader').css('visibility', 'hidden');

@@ -118,9 +118,9 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         // Max. Anzahl Tokens
         $max_tokens = new ilNumberInputGUI($this->plugin_object->txt("max_tokens"), "max_tokens");
         $max_tokens->setInfo($this->plugin_object->txt("max_tokens_info"));
-        $max_tokens->setValue($this->plugin_object->getSetting('max_tokens', '500'));
+        $max_tokens->setValue($this->plugin_object->getSetting('max_tokens', '2000'));
         $max_tokens->setMinValue(100);
-        $max_tokens->setMaxValue(2000);
+        $max_tokens->setMaxValue(32000);
         $form->addItem($max_tokens);
 
         // Temperature
@@ -129,15 +129,15 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         $temperature->setValue($this->plugin_object->getSetting('ai_temperature', '0.3'));
         $temperature->setMinValue(0);
         $temperature->setMaxValue(2);
-        $temperature->setDecimals(1);
+        $temperature->setDecimals(2);
         $form->addItem($temperature);
 
         // Timeout für API-Calls
         $timeout = new ilNumberInputGUI($this->plugin_object->txt("api_timeout"), "api_timeout");
         $timeout->setInfo($this->plugin_object->txt("api_timeout_info"));
-        $timeout->setValue($this->plugin_object->getSetting('api_timeout', '30'));
+        $timeout->setValue($this->plugin_object->getSetting('api_timeout', '60'));
         $timeout->setMinValue(10);
-        $timeout->setMaxValue(120);
+        $timeout->setMaxValue(300);
         $form->addItem($timeout);
 
         // Debug-Modus
