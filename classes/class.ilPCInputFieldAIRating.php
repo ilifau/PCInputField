@@ -115,8 +115,8 @@ class ilPCInputFieldAIRating
             )
         );
 
-        // GPT-5 Modelle verwenden max_completion_tokens statt max_tokens
-        $is_gpt5_model = strpos($model, 'gpt-5') !== false;
+        // GPT-5 und GPT-4o Modelle verwenden max_completion_tokens statt max_tokens
+        $is_gpt5_model = strpos($model, 'gpt-5') !== false || strpos($model, 'gpt-4o') !== false;
 
         $data = array(
             'model' => $model,
