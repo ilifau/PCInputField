@@ -43,8 +43,9 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
         switch ($next_class) {
             case "ilpropertyformgui":
-                // Repository-Selector für LM erkennen: ilRepositorySelectorInputGUI setzt diesen GET-Param
-                if (isset($_GET['repositoryselect__field_ai_context_lm_ref_id'])) {
+                // ILIAS setzt $_GET['postvar'] auf den Namen des Formfeldes das die Navigation ausgelöst hat
+                $postvar = $_GET['postvar'] ?? '';
+                if ($postvar === 'field_ai_context_lm_ref_id') {
                     $form = $this->initForm();
                     $ilCtrl->setReturn($this, "updateContextLMRefId");
                 } else {
@@ -304,20 +305,24 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             $lm_selector->setHeaderMessage($this->txt('field_ai_context_lm_select'));
             $ctx_lm->addSubItem($lm_selector);
 
-            // Seiten-Dropdown nur wenn LM bereits ausgewählt
-            $prop_lm_ref_id = (int)($this->getProperties()['field_ai_context_lm_ref_id'] ?? 0);
-            if ($prop_lm_ref_id > 0 && !$a_create) {
-                $lm_pages = $this->getLMPages($prop_lm_ref_id);
-                if (!empty($lm_pages)) {
-                    $page_selector = new ilSelectInputGUI($this->txt('field_ai_context_page_select'), 'field_ai_context_page_id');
-                    $page_options = [0 => $this->txt('field_ai_context_page_none')];
-                    foreach ($lm_pages as $page) {
-                        $page_options[$page['obj_id']] = $page['title'];
+            // Seiten-Dropdown: immer erstellen (auch leer), damit getItemByPostVar() ihn stets findet
+            $page_selector = new ilSelectInputGUI($this->txt('field_ai_context_page_select'), 'field_ai_context_page_id');
+            $page_options = [0 => $this->txt('field_ai_context_page_none')];
+            // Seiten befüllen wenn LM bereits ausgewählt (sicher abrufen)
+            if (!$a_create) {
+                try {
+                    $prop_lm_ref_id = (int)($this->getProperties()['field_ai_context_lm_ref_id'] ?? 0);
+                    if ($prop_lm_ref_id > 0) {
+                        foreach ($this->getLMPages($prop_lm_ref_id) as $page) {
+                            $page_options[$page['obj_id']] = $page['title'];
+                        }
                     }
-                    $page_selector->setOptions($page_options);
-                    $ctx_lm->addSubItem($page_selector);
+                } catch (Throwable $e) {
+                    // getProperties() nicht verfügbar in diesem Kontext – Dropdown bleibt leer
                 }
             }
+            $page_selector->setOptions($page_options);
+            $ctx_lm->addSubItem($page_selector);
 
             $context_source->addOption($ctx_lm);
             $ai_enabled->addSubItem($context_source);
@@ -412,9 +417,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 $context_source->setValue($prop['field_ai_context_source'] ?? 'none');
                 $ctx_text_input->setValue($prop['field_ai_context_text'] ?? '');
                 $lm_selector->setValue($prop['field_ai_context_lm_ref_id'] ?? '');
-                if ($prop_lm_ref_id > 0 && isset($page_selector)) {
-                    $page_selector->setValue($prop['field_ai_context_page_id'] ?? 0);
-                }
+                $page_selector->setValue($prop['field_ai_context_page_id'] ?? 0);
             }
             
             $type->setValue($prop['field_type']);
