@@ -62,6 +62,8 @@ lm_endpoint_url#:#LM Studio Endpoint URL
 lm_endpoint_url_info#:#URL to LM Studio API endpoint (default: http://localhost:1234/v1/chat/completions)
 lm_model#:#LM Studio Model
 lm_model_info#:#Name of the locally loaded model (e.g., qwen2.5-14b-instruct, llama-3-8b)
+lm_num_ctx#:#Context Window Size (Tokens)
+lm_num_ctx_info#:#Maximum number of tokens the model can process in context. Increase when using learning module pages as context (e.g. 16384 or 32768). Must be supported by the loaded model.
 ai_provider_chatgpt#:#ChatGPT (OpenAI)
 ai_provider_chatgpt_info#:#Uses the OpenAI ChatGPT API (paid service, internet connection required)
 openai_api_key#:#OpenAI API Key

@@ -52,6 +52,7 @@ class ilPCInputFieldAIRating
             $endpoint_url = $settings->get('pcinfi_lm_endpoint_url', 'http://localhost:1234/v1/chat/completions');
             $api_key = ''; // LM Studio benötigt keinen API Key
             $model = $settings->get('pcinfi_lm_model', 'qwen2.5-14b-instruct');
+            $num_ctx = (int)$settings->get('pcinfi_lm_num_ctx', 8192);
 
             error_log('[PCInputField AI] LM Studio - Model: ' . $model);
         }
@@ -62,7 +63,7 @@ class ilPCInputFieldAIRating
 
         try {
             // Führe KI-Bewertung durch
-            $result = self::callAI($endpoint_url, $api_key, $model, $system_prompt, $content, $max_tokens, $temperature, $timeout, $context);
+            $result = self::callAI($endpoint_url, $api_key, $model, $system_prompt, $content, $max_tokens, $temperature, $timeout, $context, $num_ctx ?? 0);
 
             if ($result['success']) {
                 return array(
@@ -90,7 +91,7 @@ class ilPCInputFieldAIRating
     /**
      * KI-API Aufruf (funktioniert mit OpenAI API und LM Studio)
      */
-    private static function callAI($endpoint_url, $api_key, $model, $system_prompt, $user_content, $max_tokens, $temperature, $timeout = 30, $context = '')
+    private static function callAI($endpoint_url, $api_key, $model, $system_prompt, $user_content, $max_tokens, $temperature, $timeout = 30, $context = '', $num_ctx = 0)
     {
         // Baue User-Nachricht zusammen (mit optionalem Kontext)
         if (!empty($context)) {
@@ -128,6 +129,11 @@ class ilPCInputFieldAIRating
             $data['max_completion_tokens'] = $max_tokens;
         } else {
             $data['max_tokens'] = $max_tokens;
+        }
+
+        // num_ctx nur für LM Studio (kein API-Key = lokales Modell)
+        if (empty($api_key) && $num_ctx > 0) {
+            $data['num_ctx'] = $num_ctx;
         }
 
         // Headers

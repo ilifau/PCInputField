@@ -80,6 +80,14 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         $lm_model->setSize(40);
         $lmstudio->addSubItem($lm_model);
 
+        $lm_num_ctx = new ilNumberInputGUI($this->plugin_object->txt("lm_num_ctx"), "lm_num_ctx");
+        $lm_num_ctx->setInfo($this->plugin_object->txt("lm_num_ctx_info"));
+        $lm_num_ctx->setValue($this->plugin_object->getSetting('lm_num_ctx', '8192'));
+        $lm_num_ctx->setMinValue(512);
+        $lm_num_ctx->setMaxValue(131072);
+        $lm_num_ctx->setDecimals(0);
+        $lmstudio->addSubItem($lm_num_ctx);
+
         $ai_provider->addOption($lmstudio);
 
         // Option: ChatGPT (OpenAI)
@@ -171,6 +179,7 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
             // LM Studio Einstellungen
             $this->plugin_object->setSetting('lm_endpoint_url', $form->getInput('lm_endpoint_url'));
             $this->plugin_object->setSetting('lm_model', $form->getInput('lm_model'));
+            $this->plugin_object->setSetting('lm_num_ctx', $form->getInput('lm_num_ctx'));
 
             // ChatGPT/OpenAI Einstellungen
             $this->plugin_object->setSetting('openai_api_key', $form->getInput('openai_api_key'));
