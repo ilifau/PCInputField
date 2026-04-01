@@ -328,6 +328,10 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             $ai_enabled->addSubItem($context_source);
 
             $form->addItem($ai_enabled);
+
+            // ilRepositorySelectorInputGUI braucht explizit das Parent-Form gesetzt,
+            // da bei tief verschachtelten Sub-Items die Propagation nicht greift.
+            $lm_selector->setParentForm($form);
         }
 
         $type = new ilRadioGroupInputGUI($this->txt('field_type'), 'field_type');
