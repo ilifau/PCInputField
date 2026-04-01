@@ -83,3 +83,7 @@ test_connection_success#:#AI connection successful!
 test_connection_failed#:#AI connection failed
 test_response#:#AI Response
 error#:#Error
+field_ai_enabled#:#Enable AI Evaluation for this Field
+field_ai_enabled_info#:#Enables automatic AI-based evaluation for this input field (only if global AI support is enabled)
+field_ai_prompt#:#Individual AI Prompt (optional)
+field_ai_prompt_info#:#Custom system prompt for AI evaluation of this field. If empty, the global admin prompt will be used.

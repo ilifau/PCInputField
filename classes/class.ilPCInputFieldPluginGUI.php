@@ -78,6 +78,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             $properties = array(
                 'field_name' => $form->getInput('field_name'),
                 'field_ai_enabled' => ($is_admin && $form->getInput('field_ai_enabled')) ? '1' : '0',
+                'field_ai_prompt' => $is_admin ? $form->getInput('field_ai_prompt') : '',
                 'field_type' => $form->getInput('field_type'),
                 'field_size' => $form->getInput('field_size'),
                 'field_maxlength' => $form->getInput('field_maxlength'),
@@ -121,14 +122,19 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             // Prüfe ob User Admin ist (für KI-Einstellung)
             $is_admin = $DIC->rbac()->system()->checkAccess('visible', SYSTEM_FOLDER_ID);
             
-            // Wenn Nicht-Admin: Behalte existierenden KI-Wert
-            $ai_enabled_value = $is_admin 
+            // Wenn Nicht-Admin: Behalte existierende KI-Werte
+            $ai_enabled_value = $is_admin
                 ? ($form->getInput('field_ai_enabled') ? '1' : '0')
                 : ($existing_properties['field_ai_enabled'] ?? '0');
-            
+
+            $ai_prompt_value = $is_admin
+                ? $form->getInput('field_ai_prompt')
+                : ($existing_properties['field_ai_prompt'] ?? '');
+
             $properties = array(
                 'field_name' => $form->getInput('field_name'),
                 'field_ai_enabled' => $ai_enabled_value,
+                'field_ai_prompt' => $ai_prompt_value,
                 'field_type' => $form->getInput('field_type'),
                 'field_size' => $form->getInput('field_size'),
                 'field_maxlength' => $form->getInput('field_maxlength'),
@@ -228,6 +234,13 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         if ($is_admin) {
             $ai_enabled = new ilCheckboxInputGUI($this->txt('field_ai_enabled'), 'field_ai_enabled');
             $ai_enabled->setInfo($this->txt('field_ai_enabled_info'));
+
+            $ai_prompt = new ilTextAreaInputGUI($this->txt('field_ai_prompt'), 'field_ai_prompt');
+            $ai_prompt->setInfo($this->txt('field_ai_prompt_info'));
+            $ai_prompt->setRows(6);
+            $ai_prompt->setCols(60);
+            $ai_enabled->addSubItem($ai_prompt);
+
             $form->addItem($ai_enabled);
         }
 
@@ -314,6 +327,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             if ($is_admin) {
                 $ai_enabled_value = isset($prop['field_ai_enabled']) ? $prop['field_ai_enabled'] : '0';
                 $ai_enabled->setChecked($ai_enabled_value === '1');
+                $ai_prompt->setValue($prop['field_ai_prompt'] ?? '');
             }
             
             $type->setValue($prop['field_type']);
@@ -607,7 +621,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     . '&amp;field_name=' . urlencode($a_properties['field_name'])
                     . '&amp;field_type=' . urlencode($a_properties['field_type'])
                     . '&amp;select_type=' . urlencode($a_properties['select_type'])
-                    . '&amp;field_ai_enabled=' . urlencode($a_properties['field_ai_enabled'] ?? '0'); // NEUE ZEILE
+                    . '&amp;field_ai_enabled=' . urlencode($a_properties['field_ai_enabled'] ?? '0')
+                    . '&amp;field_ai_prompt=' . urlencode($a_properties['field_ai_prompt'] ?? '');
 
                 $exc_back_ref_id = (int)($_GET['exc_back_ref_id'] ?? 0);
                 if ($exc_back_ref_id > 0) {
@@ -621,7 +636,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                             . '&amp;field_name=' . urlencode($a_properties['field_name'])
                             . '&amp;field_type=' . urlencode($a_properties['field_type'])
                             . '&amp;select_type=' . urlencode($a_properties['select_type'])
-                            . '&amp;field_ai_enabled=' . urlencode($a_properties['field_ai_enabled'] ?? '0'); // NEUE ZEILE
+                            . '&amp;field_ai_enabled=' . urlencode($a_properties['field_ai_enabled'] ?? '0')
+                            . '&amp;field_ai_prompt=' . urlencode($a_properties['field_ai_prompt'] ?? '');
                     }
                 }
 

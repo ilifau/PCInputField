@@ -13,7 +13,7 @@ class ilPCInputFieldAIRating
     /**
      * Führe KI-Bewertung durch und gib Ergebnis sofort zurück
      */
-    public static function evaluateText($content)
+    public static function evaluateText($content, $custom_prompt = '')
     {
         error_log('[PCInputField AI] evaluateText() aufgerufen mit: ' . substr($content, 0, 50));
 
@@ -28,7 +28,8 @@ class ilPCInputFieldAIRating
         }
 
         $ai_provider = $settings->get('pcinfi_ai_provider', 'lmstudio');
-        $system_prompt = $settings->get('pcinfi_ai_prompt', '');
+        // Individueller Prompt überschreibt den globalen Admin-Prompt
+        $system_prompt = (!empty($custom_prompt)) ? $custom_prompt : $settings->get('pcinfi_ai_prompt', '');
         $max_tokens = (int)$settings->get('pcinfi_max_tokens', 2000);
         $temperature = (float)$settings->get('pcinfi_ai_temperature', 0.3);
         $timeout = (int)$settings->get('pcinfi_api_timeout', 60);

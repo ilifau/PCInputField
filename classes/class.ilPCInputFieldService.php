@@ -94,15 +94,17 @@ class ilPCInputFieldService
         $select_type   = $_GET['select_type'] ?? self::SELECT_SINGLE;
 
         $field_ai_enabled = $this->getFieldAIEnabled($field_name);
-        
+        $field_ai_prompt  = $this->getFieldAIPrompt();
+
         // DEBUG
-        $DIC->logger()->root()->info('[PCInputField] sendInput called: field=' . $field_name . ', ai_enabled=' . ($field_ai_enabled ? 'YES' : 'NO'));
+        $DIC->logger()->root()->info('[PCInputField] sendInput called: field=' . $field_name . ', ai_enabled=' . ($field_ai_enabled ? 'YES' : 'NO') . ', custom_prompt=' . (empty($field_ai_prompt) ? 'GLOBAL' : 'CUSTOM'));
 
         $sendObj = ilPCInputFieldSend::init($ilUser->getId(), $field_name, $field_type, $exercise_id, $assignment_id);
         if (!($sendObj instanceof ilPCInputFieldSend)) {
             return $this->respondJSON(500, ['status' => 500, 'message' => 'Init failed: ilPCInputFieldSend is null']);
         }
         $sendObj->field_ai_enabled = $field_ai_enabled;
+        $sendObj->field_ai_prompt  = $field_ai_prompt;
 
         $raw = $_POST['value'] ?? null;
         if ($field_type === self::FIELD_SELECT) {
@@ -224,6 +226,15 @@ class ilPCInputFieldService
         return $this->respondJSON(200, ['status' => 200, 'id' => $valObj->id]);
     }
 
+
+    /**
+     * Lese den individuellen KI-Prompt für dieses Feld aus der URL
+     * Leerer String bedeutet: globalen Admin-Prompt verwenden
+     */
+    private function getFieldAIPrompt(): string
+    {
+        return trim($_GET['field_ai_prompt'] ?? '');
+    }
 
     /**
      * Prüfe, ob KI-Bewertung für dieses Feld aktiv ist (global + Feld)

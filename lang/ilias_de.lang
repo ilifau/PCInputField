@@ -83,3 +83,7 @@ test_connection_success#:#KI-Verbindung erfolgreich!
 test_connection_failed#:#KI-Verbindung fehlgeschlagen
 test_response#:#KI-Antwort
 error#:#Fehler
+field_ai_enabled#:#KI-Bewertung für dieses Feld aktivieren
+field_ai_enabled_info#:#Aktiviert automatische KI-basierte Bewertung für dieses Eingabefeld (nur wenn die globale KI-Unterstützung aktiviert ist)
+field_ai_prompt#:#Individueller KI-Prompt (optional)
+field_ai_prompt_info#:#Eigener Systemprompt für die KI-Bewertung dieses Feldes. Wenn leer, wird der globale Admin-Prompt verwendet.

@@ -64,6 +64,12 @@ class ilPCInputFieldSend
     public $field_ai_enabled = false;
 
     /**
+     * Individueller KI-Prompt für dieses Feld (überschreibt den globalen Admin-Prompt wenn gesetzt)
+     * @var string
+     */
+    public $field_ai_prompt = '';
+
+    /**
      * @param $user_id integer
      * @param $field_name string
      * @param $field_type string
@@ -151,7 +157,7 @@ class ilPCInputFieldSend
         $DIC->logger()->root()->info('[PCInputField] KI-Bewertung wird gestartet für field_value: ' . substr($this->field_value, 0, 50));
         
         require_once(dirname(__FILE__) . '/class.ilPCInputFieldAIRating.php');
-        $ai_result = ilPCInputFieldAIRating::evaluateText($this->field_value);
+        $ai_result = ilPCInputFieldAIRating::evaluateText($this->field_value, $this->field_ai_prompt);
         
         $DIC->logger()->root()->info('[PCInputField] KI-Bewertung Ergebnis: success=' . ($ai_result['success'] ? 'YES' : 'NO'));
         
