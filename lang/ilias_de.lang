@@ -73,11 +73,11 @@ openai_model_info#:#Welches OpenAI Modell soll verwendet werden? GPT-4o-mini ist
 ai_prompt#:#KI Bewertungs-Prompt
 ai_prompt_info#:#Systemprompt für die KI-Bewertung. Verwenden Sie {answer} als Platzhalter für die Studenten-Antwort.
 max_tokens#:#Maximale Token-Anzahl
-max_tokens_info#:#Maximale Anzahl der Tokens in der KI-Antwort (empfohlen: 500)
+max_tokens_info#:#Maximale Anzahl der Tokens in der KI-Antwort (empfohlen: 2000)
 ai_temperature#:#Temperature
 ai_temperature_info#:#Kreativität der KI-Antworten (0.0 = deterministisch, 2.0 = sehr kreativ, empfohlen: 0.3)
 api_timeout#:#API Timeout (Sekunden)
-api_timeout_info#:#Maximale Wartezeit für KI-API-Antworten in Sekunden (empfohlen: 30)
+api_timeout_info#:#Maximale Wartezeit für KI-API-Antworten in Sekunden (empfohlen: 60)
 debug_mode#:#Debug-Modus aktivieren
 debug_mode_info#:#Aktiviert erweiterte Logging-Ausgaben für Fehlersuche
 test_connection#:#Verbindung testen
