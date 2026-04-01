@@ -95,16 +95,18 @@ class ilPCInputFieldService
 
         $field_ai_enabled = $this->getFieldAIEnabled($field_name);
         $field_ai_prompt  = $this->getFieldAIPrompt();
+        $field_ai_context = $this->getFieldAIContext();
 
         // DEBUG
-        $DIC->logger()->root()->info('[PCInputField] sendInput called: field=' . $field_name . ', ai_enabled=' . ($field_ai_enabled ? 'YES' : 'NO') . ', custom_prompt=' . (empty($field_ai_prompt) ? 'GLOBAL' : 'CUSTOM'));
+        $DIC->logger()->root()->info('[PCInputField] sendInput called: field=' . $field_name . ', ai_enabled=' . ($field_ai_enabled ? 'YES' : 'NO') . ', custom_prompt=' . (empty($field_ai_prompt) ? 'GLOBAL' : 'CUSTOM') . ', context=' . (empty($field_ai_context) ? 'NONE' : substr($field_ai_context, 0, 30) . '...'));
 
         $sendObj = ilPCInputFieldSend::init($ilUser->getId(), $field_name, $field_type, $exercise_id, $assignment_id);
         if (!($sendObj instanceof ilPCInputFieldSend)) {
             return $this->respondJSON(500, ['status' => 500, 'message' => 'Init failed: ilPCInputFieldSend is null']);
         }
-        $sendObj->field_ai_enabled = $field_ai_enabled;
-        $sendObj->field_ai_prompt  = $field_ai_prompt;
+        $sendObj->field_ai_enabled  = $field_ai_enabled;
+        $sendObj->field_ai_prompt   = $field_ai_prompt;
+        $sendObj->field_ai_context  = $field_ai_context;
 
         $raw = $_POST['value'] ?? null;
         if ($field_type === self::FIELD_SELECT) {
@@ -234,6 +236,63 @@ class ilPCInputFieldService
     private function getFieldAIPrompt(): string
     {
         return trim($_GET['field_ai_prompt'] ?? '');
+    }
+
+    /**
+     * Baue den KI-Kontext-String aus den URL-Parametern zusammen
+     * Gibt leeren String zurück wenn kein Kontext konfiguriert
+     */
+    private function getFieldAIContext(): string
+    {
+        $source = $_GET['field_ai_context_source'] ?? 'none';
+
+        switch ($source) {
+            case 'text':
+                return trim($_GET['field_ai_context_text'] ?? '');
+
+            case 'lm_page':
+                $lm_ref_id = (int)($_GET['field_ai_context_lm_ref_id'] ?? 0);
+                $page_id   = (int)($_GET['field_ai_context_page_id'] ?? 0);
+                if ($lm_ref_id > 0 && $page_id > 0) {
+                    return $this->loadLMPageContent($lm_ref_id, $page_id);
+                }
+                return '';
+
+            default:
+                return '';
+        }
+    }
+
+    /**
+     * Lade den Textinhalt einer Lernmodul-Seite aus der ILIAS-Datenbank
+     */
+    private function loadLMPageContent(int $lm_ref_id, int $page_id): string
+    {
+        try {
+            global $ilDB;
+
+            $lm_obj_id = ilObject::_lookupObjId($lm_ref_id);
+            if (!$lm_obj_id) {
+                return '';
+            }
+
+            $res = $ilDB->queryF(
+                "SELECT content FROM page_object WHERE page_id = %s AND parent_id = %s AND parent_type = %s",
+                ['integer', 'integer', 'text'],
+                [$page_id, $lm_obj_id, 'lm']
+            );
+            $row = $ilDB->fetchAssoc($res);
+            if (!$row || empty($row['content'])) {
+                return '';
+            }
+
+            // XML-Tags entfernen, Leerzeilen normalisieren
+            $text = strip_tags($row['content']);
+            $text = preg_replace('/\n{3,}/', "\n\n", $text);
+            return trim($text);
+        } catch (Throwable $e) {
+            return '';
+        }
     }
 
     /**

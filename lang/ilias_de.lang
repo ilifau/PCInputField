@@ -87,3 +87,12 @@ field_ai_enabled#:#KI-Bewertung für dieses Feld aktivieren
 field_ai_enabled_info#:#Aktiviert automatische KI-basierte Bewertung für dieses Eingabefeld (nur wenn die globale KI-Unterstützung aktiviert ist)
 field_ai_prompt#:#Individueller KI-Prompt (optional)
 field_ai_prompt_info#:#Eigener Systemprompt für die KI-Bewertung dieses Feldes. Wenn leer, wird der globale Admin-Prompt verwendet.
+field_ai_context_source#:#Kontext für die KI
+field_ai_context_source_info#:#Optionaler Lehrinhalt, den die KI beim Bewerten berücksichtigt
+field_ai_context_none#:#Kein zusätzlicher Kontext
+field_ai_context_text#:#Freitext als Kontext
+field_ai_context_text_label#:#Kontext-Text
+field_ai_context_lm#:#Lernmodul-Seite als Kontext
+field_ai_context_lm_select#:#Lernmodul auswählen
+field_ai_context_page_select#:#Seite aus dem Lernmodul
+field_ai_context_page_none#:#Ganze Seite (keine spezifische Auswahl)

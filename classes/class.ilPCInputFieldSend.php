@@ -70,6 +70,12 @@ class ilPCInputFieldSend
     public $field_ai_prompt = '';
 
     /**
+     * Zusätzlicher Kontext für die KI (z.B. Lernmodul-Seite oder Freitext)
+     * @var string
+     */
+    public $field_ai_context = '';
+
+    /**
      * @param $user_id integer
      * @param $field_name string
      * @param $field_type string
@@ -157,7 +163,7 @@ class ilPCInputFieldSend
         $DIC->logger()->root()->info('[PCInputField] KI-Bewertung wird gestartet für field_value: ' . substr($this->field_value, 0, 50));
         
         require_once(dirname(__FILE__) . '/class.ilPCInputFieldAIRating.php');
-        $ai_result = ilPCInputFieldAIRating::evaluateText($this->field_value, $this->field_ai_prompt);
+        $ai_result = ilPCInputFieldAIRating::evaluateText($this->field_value, $this->field_ai_prompt, $this->field_ai_context);
         
         $DIC->logger()->root()->info('[PCInputField] KI-Bewertung Ergebnis: success=' . ($ai_result['success'] ? 'YES' : 'NO'));
         

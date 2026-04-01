@@ -87,3 +87,12 @@ field_ai_enabled#:#Enable AI Evaluation for this Field
 field_ai_enabled_info#:#Enables automatic AI-based evaluation for this input field (only if global AI support is enabled)
 field_ai_prompt#:#Individual AI Prompt (optional)
 field_ai_prompt_info#:#Custom system prompt for AI evaluation of this field. If empty, the global admin prompt will be used.
+field_ai_context_source#:#Context for AI
+field_ai_context_source_info#:#Optional learning content the AI considers when evaluating
+field_ai_context_none#:#No additional context
+field_ai_context_text#:#Free text as context
+field_ai_context_text_label#:#Context text
+field_ai_context_lm#:#Learning module page as context
+field_ai_context_lm_select#:#Select learning module
+field_ai_context_page_select#:#Page from the learning module
+field_ai_context_page_none#:#Entire page (no specific selection)

@@ -13,7 +13,7 @@ class ilPCInputFieldAIRating
     /**
      * Führe KI-Bewertung durch und gib Ergebnis sofort zurück
      */
-    public static function evaluateText($content, $custom_prompt = '')
+    public static function evaluateText($content, $custom_prompt = '', $context = '')
     {
         error_log('[PCInputField AI] evaluateText() aufgerufen mit: ' . substr($content, 0, 50));
 
@@ -62,7 +62,7 @@ class ilPCInputFieldAIRating
 
         try {
             // Führe KI-Bewertung durch
-            $result = self::callAI($endpoint_url, $api_key, $model, $system_prompt, $content, $max_tokens, $temperature, $timeout);
+            $result = self::callAI($endpoint_url, $api_key, $model, $system_prompt, $content, $max_tokens, $temperature, $timeout, $context);
 
             if ($result['success']) {
                 return array(
@@ -90,8 +90,18 @@ class ilPCInputFieldAIRating
     /**
      * KI-API Aufruf (funktioniert mit OpenAI API und LM Studio)
      */
-    private static function callAI($endpoint_url, $api_key, $model, $system_prompt, $user_content, $max_tokens, $temperature, $timeout = 30)
+    private static function callAI($endpoint_url, $api_key, $model, $system_prompt, $user_content, $max_tokens, $temperature, $timeout = 30, $context = '')
     {
+        // Baue User-Nachricht zusammen (mit optionalem Kontext)
+        if (!empty($context)) {
+            $user_message = "Hier ist der relevante Lehrinhalt als Kontext:\n\n"
+                . $context
+                . "\n\n---\n\nBitte bewerte folgende studentische Antwort:\n\n"
+                . $user_content;
+        } else {
+            $user_message = "Bitte bewerte folgende studentische Antwort:\n\n" . $user_content;
+        }
+
         // Bereite Request vor
         $messages = array(
             array(
@@ -100,7 +110,7 @@ class ilPCInputFieldAIRating
             ),
             array(
                 'role' => 'user',
-                'content' => "Bitte bewerte folgende studentische Antwort:\n\n" . $user_content
+                'content' => $user_message
             )
         );
 

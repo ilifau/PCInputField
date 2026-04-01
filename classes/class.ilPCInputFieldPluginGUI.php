@@ -43,14 +43,20 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
         switch ($next_class) {
             case "ilpropertyformgui":
-                $form = $this->initSendForm();
-                $ilCtrl->setReturn($this, "updateExerciseRefId");
+                // Repository-Selector für LM erkennen: ilRepositorySelectorInputGUI setzt diesen GET-Param
+                if (isset($_GET['repositoryselect__field_ai_context_lm_ref_id'])) {
+                    $form = $this->initForm();
+                    $ilCtrl->setReturn($this, "updateContextLMRefId");
+                } else {
+                    $form = $this->initSendForm();
+                    $ilCtrl->setReturn($this, "updateExerciseRefId");
+                }
                 $ilCtrl->forwardCommand($form);
                 return;
 
             default:
                 $cmd = $ilCtrl->getCmd();
-                if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "updateExerciseRefId", "cancel"))) {
+                if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "updateExerciseRefId", "updateContextLMRefId", "cancel"))) {
                     $this->$cmd();
                 }
                 break;
@@ -79,6 +85,10 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 'field_name' => $form->getInput('field_name'),
                 'field_ai_enabled' => ($is_admin && $form->getInput('field_ai_enabled')) ? '1' : '0',
                 'field_ai_prompt' => $is_admin ? $form->getInput('field_ai_prompt') : '',
+                'field_ai_context_source' => $is_admin ? ($form->getInput('field_ai_context_source') ?: 'none') : 'none',
+                'field_ai_context_text' => $is_admin ? $form->getInput('field_ai_context_text') : '',
+                'field_ai_context_lm_ref_id' => $is_admin ? (int)$form->getInput('field_ai_context_lm_ref_id') : 0,
+                'field_ai_context_page_id' => $is_admin ? (int)$form->getInput('field_ai_context_page_id') : 0,
                 'field_type' => $form->getInput('field_type'),
                 'field_size' => $form->getInput('field_size'),
                 'field_maxlength' => $form->getInput('field_maxlength'),
@@ -131,10 +141,27 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 ? $form->getInput('field_ai_prompt')
                 : ($existing_properties['field_ai_prompt'] ?? '');
 
+            $ai_context_source = $is_admin
+                ? ($form->getInput('field_ai_context_source') ?: 'none')
+                : ($existing_properties['field_ai_context_source'] ?? 'none');
+            $ai_context_text = $is_admin
+                ? $form->getInput('field_ai_context_text')
+                : ($existing_properties['field_ai_context_text'] ?? '');
+            $ai_context_lm_ref_id = $is_admin
+                ? (int)$form->getInput('field_ai_context_lm_ref_id')
+                : (int)($existing_properties['field_ai_context_lm_ref_id'] ?? 0);
+            $ai_context_page_id = $is_admin
+                ? (int)$form->getInput('field_ai_context_page_id')
+                : (int)($existing_properties['field_ai_context_page_id'] ?? 0);
+
             $properties = array(
                 'field_name' => $form->getInput('field_name'),
                 'field_ai_enabled' => $ai_enabled_value,
                 'field_ai_prompt' => $ai_prompt_value,
+                'field_ai_context_source' => $ai_context_source,
+                'field_ai_context_text' => $ai_context_text,
+                'field_ai_context_lm_ref_id' => $ai_context_lm_ref_id,
+                'field_ai_context_page_id' => $ai_context_page_id,
                 'field_type' => $form->getInput('field_type'),
                 'field_size' => $form->getInput('field_size'),
                 'field_maxlength' => $form->getInput('field_maxlength'),
@@ -214,6 +241,21 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         $ilCtrl->redirect($this, 'send');
     }
 
+    public function updateContextLMRefId(): void
+    {
+        global $ilCtrl;
+
+        $form = $this->initForm();
+        $input = $form->getItemByPostVar('field_ai_context_lm_ref_id');
+        $input->readFromSession();
+
+        $properties = $this->getProperties();
+        $properties['field_ai_context_lm_ref_id'] = $input->getValue();
+        $properties['field_ai_context_page_id'] = 0;
+        $this->updateElement($properties);
+        $ilCtrl->redirect($this, 'edit');
+    }
+
     protected function initForm($a_create = false)
     {
         global $lng, $ilCtrl;
@@ -240,6 +282,45 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             $ai_prompt->setRows(6);
             $ai_prompt->setCols(60);
             $ai_enabled->addSubItem($ai_prompt);
+
+            // *** KI-Kontext-Quelle ***
+            $context_source = new ilRadioGroupInputGUI($this->txt('field_ai_context_source'), 'field_ai_context_source');
+            $context_source->setInfo($this->txt('field_ai_context_source_info'));
+
+            $ctx_none = new ilRadioOption($this->txt('field_ai_context_none'), 'none');
+            $context_source->addOption($ctx_none);
+
+            $ctx_text = new ilRadioOption($this->txt('field_ai_context_text'), 'text');
+            $ctx_text_input = new ilTextAreaInputGUI($this->txt('field_ai_context_text_label'), 'field_ai_context_text');
+            $ctx_text_input->setRows(6);
+            $ctx_text_input->setCols(60);
+            $ctx_text->addSubItem($ctx_text_input);
+            $context_source->addOption($ctx_text);
+
+            $ctx_lm = new ilRadioOption($this->txt('field_ai_context_lm'), 'lm_page');
+            include_once("./Services/Form/classes/class.ilRepositorySelectorInputGUI.php");
+            $lm_selector = new ilRepositorySelectorInputGUI($this->txt('field_ai_context_lm_select'), 'field_ai_context_lm_ref_id');
+            $lm_selector->setClickableTypes(['lm']);
+            $lm_selector->setHeaderMessage($this->txt('field_ai_context_lm_select'));
+            $ctx_lm->addSubItem($lm_selector);
+
+            // Seiten-Dropdown nur wenn LM bereits ausgewählt
+            $prop_lm_ref_id = (int)($this->getProperties()['field_ai_context_lm_ref_id'] ?? 0);
+            if ($prop_lm_ref_id > 0 && !$a_create) {
+                $lm_pages = $this->getLMPages($prop_lm_ref_id);
+                if (!empty($lm_pages)) {
+                    $page_selector = new ilSelectInputGUI($this->txt('field_ai_context_page_select'), 'field_ai_context_page_id');
+                    $page_options = [0 => $this->txt('field_ai_context_page_none')];
+                    foreach ($lm_pages as $page) {
+                        $page_options[$page['obj_id']] = $page['title'];
+                    }
+                    $page_selector->setOptions($page_options);
+                    $ctx_lm->addSubItem($page_selector);
+                }
+            }
+
+            $context_source->addOption($ctx_lm);
+            $ai_enabled->addSubItem($context_source);
 
             $form->addItem($ai_enabled);
         }
@@ -328,6 +409,12 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 $ai_enabled_value = isset($prop['field_ai_enabled']) ? $prop['field_ai_enabled'] : '0';
                 $ai_enabled->setChecked($ai_enabled_value === '1');
                 $ai_prompt->setValue($prop['field_ai_prompt'] ?? '');
+                $context_source->setValue($prop['field_ai_context_source'] ?? 'none');
+                $ctx_text_input->setValue($prop['field_ai_context_text'] ?? '');
+                $lm_selector->setValue($prop['field_ai_context_lm_ref_id'] ?? '');
+                if ($prop_lm_ref_id > 0 && isset($page_selector)) {
+                    $page_selector->setValue($prop['field_ai_context_page_id'] ?? 0);
+                }
             }
             
             $type->setValue($prop['field_type']);
@@ -622,7 +709,11 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     . '&amp;field_type=' . urlencode($a_properties['field_type'])
                     . '&amp;select_type=' . urlencode($a_properties['select_type'])
                     . '&amp;field_ai_enabled=' . urlencode($a_properties['field_ai_enabled'] ?? '0')
-                    . '&amp;field_ai_prompt=' . urlencode($a_properties['field_ai_prompt'] ?? '');
+                    . '&amp;field_ai_prompt=' . urlencode($a_properties['field_ai_prompt'] ?? '')
+                    . '&amp;field_ai_context_source=' . urlencode($a_properties['field_ai_context_source'] ?? 'none')
+                    . '&amp;field_ai_context_text=' . urlencode($a_properties['field_ai_context_text'] ?? '')
+                    . '&amp;field_ai_context_lm_ref_id=' . (int)($a_properties['field_ai_context_lm_ref_id'] ?? 0)
+                    . '&amp;field_ai_context_page_id=' . (int)($a_properties['field_ai_context_page_id'] ?? 0);
 
                 $exc_back_ref_id = (int)($_GET['exc_back_ref_id'] ?? 0);
                 if ($exc_back_ref_id > 0) {
@@ -637,7 +728,11 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                             . '&amp;field_type=' . urlencode($a_properties['field_type'])
                             . '&amp;select_type=' . urlencode($a_properties['select_type'])
                             . '&amp;field_ai_enabled=' . urlencode($a_properties['field_ai_enabled'] ?? '0')
-                            . '&amp;field_ai_prompt=' . urlencode($a_properties['field_ai_prompt'] ?? '');
+                            . '&amp;field_ai_prompt=' . urlencode($a_properties['field_ai_prompt'] ?? '')
+                            . '&amp;field_ai_context_source=' . urlencode($a_properties['field_ai_context_source'] ?? 'none')
+                            . '&amp;field_ai_context_text=' . urlencode($a_properties['field_ai_context_text'] ?? '')
+                            . '&amp;field_ai_context_lm_ref_id=' . (int)($a_properties['field_ai_context_lm_ref_id'] ?? 0)
+                            . '&amp;field_ai_context_page_id=' . (int)($a_properties['field_ai_context_page_id'] ?? 0);
                     }
                 }
 
@@ -966,5 +1061,39 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         $modal->setBody($tpl->get());
 
         return $modal->getHTML();
+    }
+
+    /**
+     * Lade alle Seiten eines Lernmoduls für den Seiten-Picker
+     * @param int $lm_ref_id  Referenz-ID des Lernmoduls
+     * @return array  Array of ['obj_id' => int, 'title' => string]
+     */
+    protected function getLMPages(int $lm_ref_id): array
+    {
+        global $ilDB;
+
+        try {
+            $lm_obj_id = ilObject::_lookupObjId($lm_ref_id);
+            if (!$lm_obj_id) {
+                return [];
+            }
+
+            $res = $ilDB->queryF(
+                "SELECT obj_id, title FROM lm_data WHERE lm_id = %s AND type = %s ORDER BY title",
+                ['integer', 'text'],
+                [$lm_obj_id, 'pg']
+            );
+
+            $pages = [];
+            while ($row = $ilDB->fetchAssoc($res)) {
+                $pages[] = [
+                    'obj_id' => (int)$row['obj_id'],
+                    'title'  => $row['title'],
+                ];
+            }
+            return $pages;
+        } catch (Throwable $e) {
+            return [];
+        }
     }
 }
