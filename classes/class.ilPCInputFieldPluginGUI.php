@@ -287,6 +287,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             // *** KI-Kontext-Quelle ***
             $context_source = new ilRadioGroupInputGUI($this->txt('field_ai_context_source'), 'field_ai_context_source');
             $context_source->setInfo($this->txt('field_ai_context_source_info'));
+            $context_source->setValue('none');
 
             $ctx_none = new ilRadioOption($this->txt('field_ai_context_none'), 'none');
             $context_source->addOption($ctx_none);
@@ -792,13 +793,19 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                     $submit_time_raw = $this->getLastSubmission($selected_assignment);
                     $submit_time = ($submit_time_raw ? new ilDateTime($submit_time_raw, IL_CAL_DATETIME) : '');
 
-                    if (is_null($selected_assignment->getStartTime()) and (((int)$selected_assignment->getDeadline() - time()) > 0)) {
+                    // Treat deadline=0 same as null (ILIAS returns 0 for "Keine Abgabefrist")
+                    $no_start    = empty((int)$selected_assignment->getStartTime());
+                    $no_deadline = empty((int)$selected_assignment->getDeadline());
+                    $after_start   = (time() - (int)$selected_assignment->getStartTime()) > 0;
+                    $before_deadline = ((int)$selected_assignment->getDeadline() - time()) > 0;
+
+                    if ($no_start && $no_deadline) {
                         $sendable = TRUE;
-                    } elseif (is_null($selected_assignment->getDeadline()) and ((time() - (int)$selected_assignment->getStartTime()) > 0)) {
+                    } elseif ($no_start && $before_deadline) {
                         $sendable = TRUE;
-                    } elseif (((time() - (int)$selected_assignment->getStartTime()) > 0) and (((int)$selected_assignment->getDeadline() - time()) > 0)) {
+                    } elseif ($no_deadline && $after_start) {
                         $sendable = TRUE;
-                    } elseif (is_null($selected_assignment->getStartTime()) and is_null($selected_assignment->getDeadline())) {
+                    } elseif ($after_start && $before_deadline) {
                         $sendable = TRUE;
                     } else {
                         $sendable = FALSE;

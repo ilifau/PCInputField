@@ -122,13 +122,19 @@ class ilPCInputFieldSend
     }
 
     //Check if user is in time to send the field content to the assignment
-    if (is_null($assignment->getStartTime()) && (((int)$assignment->getDeadline() - time()) > 0)) {
+    // Treat deadline=0 same as null (ILIAS returns 0 for "Keine Abgabefrist")
+    $no_start        = empty((int)$assignment->getStartTime());
+    $no_deadline     = empty((int)$assignment->getDeadline());
+    $after_start     = (time() - (int)$assignment->getStartTime()) > 0;
+    $before_deadline = ((int)$assignment->getDeadline() - time()) > 0;
+
+    if ($no_start && $no_deadline) {
         $sendable = true;
-    } elseif (is_null($assignment->getDeadline()) && ((time() - (int)$assignment->getStartTime()) > 0)) {
+    } elseif ($no_start && $before_deadline) {
         $sendable = true;
-    } elseif (((time() - (int)$assignment->getStartTime()) > 0) && (((int)$assignment->getDeadline() - time()) > 0)) {
+    } elseif ($no_deadline && $after_start) {
         $sendable = true;
-    } elseif (is_null($assignment->getStartTime()) && is_null($assignment->getDeadline())) {
+    } elseif ($after_start && $before_deadline) {
         $sendable = true;
     } else {
         $sendable = false;
