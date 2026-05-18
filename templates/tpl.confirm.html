@@ -1,0 +1,36 @@
+<div class="pcinfiSendConfirmationText">{CONFIRMATION_TEXT}</div>
+
+<!-- CSS für Spinner Animation -->
+<style>
+    @keyframes pcinfi-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .pcinfi-spinner {
+        display: inline-block;
+        width: 3rem;
+        height: 3rem;
+        border: 4px solid #e3e3e3;
+        border-top: 4px solid #0d6efd;
+        border-radius: 50%;
+        animation: pcinfi-spin 1s linear infinite;
+    }
+</style>
+
+<!-- Ladebalken während der Übermittlung -->
+<div id="pcinfi_loading_indicator" style="display: none; text-align: center; margin: 20px 0;">
+    <div style="display: inline-block; padding: 25px 30px; background: #f8f9fa; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div class="pcinfi-spinner" style="margin: 0 auto 15px;"></div>
+        <div style="font-size: 16px; color: #333; margin-top: 10px;">
+            <strong>Ihre Antwort wird bewertet...</strong>
+        </div>
+        <small style="color: #666; display: block; margin-top: 8px;">
+            KI analysiert Ihre Eingabe. Dies kann einen Moment dauern.
+        </small>
+    </div>
+</div>
+
+<div class="pcinfiSendConfirmationButtons" id="pcinfi_modal_buttons">
+    <!-- BEGIN buttons -->{BUTTON} <!-- END buttons --></div>
+<!-- BEGIN hidden_inputs -->{HIDDEN_INPUT}<!-- END hidden_inputs -->

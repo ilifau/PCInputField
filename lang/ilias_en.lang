@@ -1,0 +1,100 @@
+//
+// Copyright (c) 2015 Institut fuer Lern-Innovation, Friedrich-Alexander-Universitaet Erlangen-Nuernberg
+// GPLv3, see LICENSE
+//
+// @author Fred Neumann <fred.neumann@fau.de>
+// @version $Id$
+//
+
+<!-- language file start -->
+cmd_insert#:#Insert Input Field
+edit_input_field#:#Edit Input Field
+content_plugin_version#:#Content last edited with version
+mode#:#Mode
+property#:#Property
+settings#:#Settings
+field_name#:#Field Name
+field_type#:#Field Type
+field_type_text#:#Single Line Text Input
+field_size#:#Length (Characters)
+field_maxlength#:#Maximum Input Length (Characters)
+field_type_textarea#:#Multi Line Text Input
+field_rows#:#Height (Characters)
+field_cols#:#Width (Characters)
+field_type_select#:#Selection of Options
+select_type#:#Select Type
+select_type_single#:#Single Selection
+select_type_multi#:#Multiple Selection
+select_choices#:#Choices
+field_context#:#Context for Inputs
+field_context_info#:#Fields with the same name in this context will share the same user input.
+context_page#:#This Page
+context_module#:#This Learning Module
+context_course#:#The Parent Course
+saving#:#saving
+context_page_short#:#page
+context_module_short#:#module
+context_course_short#:#course
+send_to_exercise#:#Send to Exercise
+select_exercise#:#Select Exercise
+select_assignment#:#Select Assignment
+no_assignment_selected#:#No Assignments Selected
+assignment_schedule_start#:#Assignment Start
+assignment_schedule_deadline#:#Assignment Deadline
+assignment_schedule_no_start_time#:#This Assignment doesn't have a Start Time
+assignment_schedule_no_deadline#:#This Assignment doesn't have a Deadline
+not_yet_submitted#:#Not yet Submitted
+not_yet_evaluated#:#Not yet Evaluated
+path_to_related_exercise#:#Path to Related Exercise
+submit#:#Submit
+re_submit#:#Re-Submit
+submitted#:#Submitted
+submit_success#:#Your submission is saved.
+save_on_navigation#:#Do you want to send your input for being assessed?
+configuration#:#Configuration
+ai_enabled#:#Enable AI Support
+ai_enabled_info#:#Enables automatic AI-based evaluation for input fields
+ai_provider#:#AI Provider
+ai_provider_info#:#Choose between local AI (LM Studio) or ChatGPT (OpenAI)
+ai_provider_lmstudio#:#LM Studio (local)
+ai_provider_lmstudio_info#:#Uses a locally installed AI via LM Studio
+lm_endpoint_url#:#LM Studio Endpoint URL
+lm_endpoint_url_info#:#URL to LM Studio API endpoint (default: http://localhost:1234/v1/chat/completions)
+lm_model#:#LM Studio Model
+lm_model_info#:#Name of the locally loaded model (e.g., qwen2.5-14b-instruct, llama-3-8b)
+lm_num_ctx#:#Context Window Size (Tokens)
+lm_num_ctx_info#:#Maximum number of tokens the model can process in context. Increase when using learning module pages as context (e.g. 16384 or 32768). Must be supported by the loaded model.
+ai_provider_chatgpt#:#ChatGPT (OpenAI)
+ai_provider_chatgpt_info#:#Uses the OpenAI ChatGPT API (paid service, internet connection required)
+openai_api_key#:#OpenAI API Key
+openai_api_key_info#:#Your OpenAI API key (available at https://platform.openai.com/api-keys)
+openai_model#:#ChatGPT Model
+openai_model_info#:#Which OpenAI model to use? GPT-4o-mini is the most cost-effective.
+ai_prompt#:#AI Evaluation Prompt
+ai_prompt_info#:#System prompt for AI evaluation. Use {answer} as placeholder for student answer.
+max_tokens#:#Maximum Token Count
+max_tokens_info#:#Maximum number of tokens in AI response (recommended: 2000)
+ai_temperature#:#Temperature
+ai_temperature_info#:#Creativity of AI responses (0.0 = deterministic, 2.0 = very creative, recommended: 0.3)
+api_timeout#:#API Timeout (Seconds)
+api_timeout_info#:#Maximum wait time for AI API responses in seconds (recommended: 60)
+debug_mode#:#Enable Debug Mode
+debug_mode_info#:#Enables extended logging output for troubleshooting
+test_connection#:#Test Connection
+test_connection_success#:#AI connection successful!
+test_connection_failed#:#AI connection failed
+test_response#:#AI Response
+error#:#Error
+field_ai_enabled#:#Enable AI Evaluation for this Field
+field_ai_enabled_info#:#Enables automatic AI-based evaluation for this input field (only if global AI support is enabled)
+field_ai_prompt#:#Individual AI Prompt (optional)
+field_ai_prompt_info#:#Custom system prompt for AI evaluation of this field. If empty, the global admin prompt will be used.
+field_ai_context_source#:#Context for AI
+field_ai_context_source_info#:#Optional learning content the AI considers when evaluating
+field_ai_context_none#:#No additional context
+field_ai_context_text#:#Free text as context
+field_ai_context_text_label#:#Context text
+field_ai_context_lm#:#Learning module page as context
+field_ai_context_lm_select#:#Select learning module
+field_ai_context_page_select#:#Page from the learning module
+field_ai_context_page_none#:#Entire page (no specific selection)
