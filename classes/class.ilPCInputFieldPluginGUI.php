@@ -1049,13 +1049,13 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
     {
         $tpl = $this->getPlugin()->getTemplate('tpl.confirm.html');
 
-        $send_btn = '<button id="pcinfi_send_button" class="btn btn-primary">'
+        $send_btn = '<button type="button" id="pcinfi_send_button" class="btn btn-primary">'
             . htmlspecialchars($this->txt('submit'), ENT_QUOTES, 'UTF-8') . '</button>';
         $tpl->setCurrentBlock('buttons');
         $tpl->setVariable('BUTTON', $send_btn);
         $tpl->parseCurrentBlock();
 
-        $cancel_btn = '<button id="pcinfi_cancel_button" class="btn btn-default">'
+        $cancel_btn = '<button type="button" id="pcinfi_cancel_button" class="btn btn-default">'
             . htmlspecialchars($this->txt('cancel'), ENT_QUOTES, 'UTF-8') . '</button>';
         $tpl->setCurrentBlock('buttons');
         $tpl->setVariable('BUTTON', $cancel_btn);

@@ -50,10 +50,8 @@ il.PCInputField = new function () {
 			activeFields.change(self.fieldChange);
 			activeFields.keydown(self.fieldKeydown);
 
-			/*Click on send*/
+			/*Click on send – direkt abschicken, kein Bestätigungsdialog*/
 			$('input[type="submit"]').click(self.confirm);
-			$('#pcinfi_send_button').click(self.send);
-			$('#pcinfi_cancel_button').click(self.hideNavigationModal);
 		}
 	}
 
@@ -220,7 +218,7 @@ il.PCInputField = new function () {
 				break;
 		}
 
-		self.showModal("pcinfi_" + window.input_name + "_confirmation");
+		self.send();
 	}
 
 	this.send = function () {
