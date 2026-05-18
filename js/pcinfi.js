@@ -52,8 +52,8 @@ il.PCInputField = new function () {
 
 			/*Click on send*/
 			$('input[type="submit"]').click(self.confirm);
-			$('a#pcinfi_send_button').click(self.send);
-			$('a#pcinfi_cancel_button').click(self.hideNavigationModal);
+			$('#pcinfi_send_button').click(self.send);
+			$('#pcinfi_cancel_button').click(self.hideNavigationModal);
 		}
 	}
 
@@ -332,34 +332,28 @@ il.PCInputField = new function () {
 	}
 
 	/**
-	 * Show a modal – Bootstrap 3/4 (ILIAS 9) or manual CSS fallback (ILIAS 10)
+	 * Show a modal – native <dialog> (ILIAS 10) or Bootstrap 3/4 fallback (ILIAS 9)
 	 */
 	self.showModal = function (id) {
 		var el = document.getElementById(id);
 		if (!el) return;
-		if (typeof $.fn.modal !== 'undefined') {
+		if (el.showModal) {
+			el.showModal();
+		} else if (typeof $.fn.modal !== 'undefined') {
 			$(el).modal('show');
-		} else {
-			$(el).css('display', 'block').addClass('show');
-			$('body').addClass('modal-open');
-			if (!$('#pcinfi_modal_backdrop').length) {
-				$('body').append('<div id="pcinfi_modal_backdrop" class="modal-backdrop fade show"></div>');
-			}
 		}
 	};
 
 	/**
-	 * Hide a modal – Bootstrap 3/4 (ILIAS 9) or manual CSS fallback (ILIAS 10)
+	 * Hide a modal – native <dialog> (ILIAS 10) or Bootstrap 3/4 fallback (ILIAS 9)
 	 */
 	self.hideModal = function (id) {
 		var el = document.getElementById(id);
 		if (!el) return;
-		if (typeof $.fn.modal !== 'undefined') {
+		if (el.tagName === 'DIALOG') {
+			el.close();
+		} else if (typeof $.fn.modal !== 'undefined') {
 			$(el).modal('hide');
-		} else {
-			$(el).css('display', '').removeClass('show');
-			$('body').removeClass('modal-open');
-			$('#pcinfi_modal_backdrop').remove();
 		}
 	};
 };

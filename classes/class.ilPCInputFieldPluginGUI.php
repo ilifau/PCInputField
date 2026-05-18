@@ -1045,34 +1045,29 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         return $subObj->getLastSubmission();
     }
 
-    protected function getConfirmationModal($name)
+    protected function getConfirmationModal($name): string
     {
         $tpl = $this->getPlugin()->getTemplate('tpl.confirm.html');
 
-        $button = ilLinkButton::getInstance();
-        $button->setId('pcinfi_send_button');
-        $button->setUrl('#');
-        $button->setCaption($this->txt("submit"), false);
-        $button->setPrimary(true);
+        $send_btn = '<button id="pcinfi_send_button" class="btn btn-primary">'
+            . htmlspecialchars($this->txt('submit'), ENT_QUOTES, 'UTF-8') . '</button>';
         $tpl->setCurrentBlock('buttons');
-        $tpl->setVariable('BUTTON', $button->render());
+        $tpl->setVariable('BUTTON', $send_btn);
         $tpl->parseCurrentBlock();
 
-        $button = ilLinkButton::getInstance();
-        $button->setId('pcinfi_cancel_button');
-        $button->setUrl('#');
-        $button->setCaption('cancel');
-        $button->setPrimary(false);
+        $cancel_btn = '<button id="pcinfi_cancel_button" class="btn btn-default">'
+            . htmlspecialchars($this->txt('cancel'), ENT_QUOTES, 'UTF-8') . '</button>';
         $tpl->setCurrentBlock('buttons');
-        $tpl->setVariable('BUTTON', $button->render());
+        $tpl->setVariable('BUTTON', $cancel_btn);
         $tpl->parseCurrentBlock();
 
-        $modal = ilModalGUI::getInstance();
-        $modal->setId('pcinfi_' . $name . '_confirmation');
-        $modal->setHeading($this->txt('save_on_navigation'));
-        $modal->setBody($tpl->get());
+        $heading = htmlspecialchars($this->txt('save_on_navigation'), ENT_QUOTES, 'UTF-8');
 
-        return $modal->getHTML();
+        return '<dialog id="pcinfi_' . $name . '_confirmation"'
+            . ' style="padding:1.5rem;border-radius:6px;border:1px solid #ccc;min-width:320px;max-width:500px;">'
+            . '<h4 style="margin-top:0;">' . $heading . '</h4>'
+            . $tpl->get()
+            . '</dialog>';
     }
 
     /**
