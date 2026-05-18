@@ -1038,7 +1038,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
     protected function getConfirmationModal($name)
     {
-        $tpl = new ilTemplate('./Customizing/global/plugins/Services/COPage/PageComponent/PCInputField/templates/tpl.confirm.html', true, true);
+        $tpl = $this->getPlugin()->getTemplate('tpl.confirm.html');
 
         $button = ilLinkButton::getInstance();
         $button->setId('pcinfi_send_button');
