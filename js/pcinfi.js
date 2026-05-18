@@ -220,7 +220,7 @@ il.PCInputField = new function () {
 				break;
 		}
 
-		$("#pcinfi_" + input_name + "_confirmation").modal('show');
+		self.showModal("pcinfi_" + window.input_name + "_confirmation");
 	}
 
 	this.send = function () {
@@ -279,7 +279,7 @@ il.PCInputField = new function () {
 				$('#status_' + window.input_name).html(texts.submitted + ' ' + ts);
 				$('input#' + window.input_name + '_' + window.exercise_id + '_' + window.assignment_id)
 					.attr('value', texts.re_submit);
-				$("#pcinfi_" + input_name + "_confirmation").modal('hide');
+				self.hideModal("pcinfi_" + window.input_name + "_confirmation");
 				
 				console.log('[PCInputField] Success! Reloading page in 500ms...');
 				
@@ -328,6 +328,38 @@ il.PCInputField = new function () {
 	 * Hide the navigation modal
 	 */
 	this.hideNavigationModal = function () {
-		$('#pcinfi_' + window.input_name + '_confirmation').modal('hide');
+		self.hideModal('pcinfi_' + window.input_name + '_confirmation');
 	}
+
+	/**
+	 * Show a modal – Bootstrap 3/4 (ILIAS 9) or manual CSS fallback (ILIAS 10)
+	 */
+	self.showModal = function (id) {
+		var el = document.getElementById(id);
+		if (!el) return;
+		if (typeof $.fn.modal !== 'undefined') {
+			$(el).modal('show');
+		} else {
+			$(el).css('display', 'block').addClass('show');
+			$('body').addClass('modal-open');
+			if (!$('#pcinfi_modal_backdrop').length) {
+				$('body').append('<div id="pcinfi_modal_backdrop" class="modal-backdrop fade show"></div>');
+			}
+		}
+	};
+
+	/**
+	 * Hide a modal – Bootstrap 3/4 (ILIAS 9) or manual CSS fallback (ILIAS 10)
+	 */
+	self.hideModal = function (id) {
+		var el = document.getElementById(id);
+		if (!el) return;
+		if (typeof $.fn.modal !== 'undefined') {
+			$(el).modal('hide');
+		} else {
+			$(el).css('display', '').removeClass('show');
+			$('body').removeClass('modal-open');
+			$('#pcinfi_modal_backdrop').remove();
+		}
+	};
 };
