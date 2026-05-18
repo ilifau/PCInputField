@@ -54,7 +54,6 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         $ai_enabled = new ilCheckboxInputGUI($this->plugin_object->txt("ai_enabled"), "ai_enabled");
         $ai_enabled->setInfo($this->plugin_object->txt("ai_enabled_info"));
         $ai_enabled->setChecked($this->plugin_object->getSetting('ai_enabled', '0') === '1');
-        $form->addItem($ai_enabled);
 
         // ===== AI Provider Auswahl =====
         $ai_provider = new ilRadioGroupInputGUI($this->plugin_object->txt("ai_provider"), "ai_provider");
@@ -108,7 +107,7 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         $chatgpt->addSubItem($openai_model);
 
         $ai_provider->addOption($chatgpt);
-        $form->addItem($ai_provider);
+        $ai_enabled->addSubItem($ai_provider);
 
         // Standard-Prompt für KI-Bewertung
         $ai_prompt = new ilTextAreaInputGUI($this->plugin_object->txt("ai_prompt"), "ai_prompt");
@@ -116,7 +115,7 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         $ai_prompt->setValue($this->plugin_object->getSetting('ai_prompt', $this->getDefaultPrompt()));
         $ai_prompt->setRows(10);
         $ai_prompt->setCols(80);
-        $form->addItem($ai_prompt);
+        $ai_enabled->addSubItem($ai_prompt);
 
         // Max. Anzahl Tokens
         $max_tokens = new ilNumberInputGUI($this->plugin_object->txt("max_tokens"), "max_tokens");
@@ -124,7 +123,7 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         $max_tokens->setValue($this->plugin_object->getSetting('max_tokens', '2000'));
         $max_tokens->setMinValue(100);
         $max_tokens->setMaxValue(32000);
-        $form->addItem($max_tokens);
+        $ai_enabled->addSubItem($max_tokens);
 
         // Temperature
         $temperature = new ilNumberInputGUI($this->plugin_object->txt("ai_temperature"), "ai_temperature");
@@ -133,7 +132,7 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         $temperature->setMinValue(0);
         $temperature->setMaxValue(2);
         $temperature->setDecimals(2);
-        $form->addItem($temperature);
+        $ai_enabled->addSubItem($temperature);
 
         // Timeout für API-Calls
         $timeout = new ilNumberInputGUI($this->plugin_object->txt("api_timeout"), "api_timeout");
@@ -141,13 +140,15 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
         $timeout->setValue($this->plugin_object->getSetting('api_timeout', '60'));
         $timeout->setMinValue(10);
         $timeout->setMaxValue(300);
-        $form->addItem($timeout);
+        $ai_enabled->addSubItem($timeout);
 
         // Debug-Modus
         $debug_mode = new ilCheckboxInputGUI($this->plugin_object->txt("debug_mode"), "debug_mode");
         $debug_mode->setInfo($this->plugin_object->txt("debug_mode_info"));
         $debug_mode->setChecked($this->plugin_object->getSetting('debug_mode', '0') === '1');
-        $form->addItem($debug_mode);
+        $ai_enabled->addSubItem($debug_mode);
+
+        $form->addItem($ai_enabled);
 
         $form->addCommandButton("save", $lng->txt("save"));
         $form->addCommandButton("testConnection", $this->plugin_object->txt("test_connection"));
