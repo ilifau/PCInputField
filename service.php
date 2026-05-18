@@ -27,7 +27,14 @@ if (isset($_GET["client_id"])) {
     $_COOKIE["ilClientId"] = $_GET["client_id"];
 }
 
-require_once("Services/Init/classes/class.ilInitialisation.php");
+// Autoloader: ILIAS 10 (vendor/...) vs ILIAS 9 (libs/...)
+if (file_exists("vendor/composer/vendor/autoload.php")) {
+    require_once("vendor/composer/vendor/autoload.php");
+} elseif (file_exists("libs/composer/vendor/autoload.php")) {
+    require_once("libs/composer/vendor/autoload.php");
+} else {
+    require_once("Services/Init/classes/class.ilInitialisation.php");
+}
 ilInitialisation::initILIAS();
 
 require_once __DIR__ . "/classes/class.ilPCInputFieldService.php";

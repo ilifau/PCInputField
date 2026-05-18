@@ -5,8 +5,6 @@
  * GPLv3, see docs/LICENSE
  */
 
-include_once("./Services/COPage/classes/class.ilPageComponentPlugin.php");
-
 /**
  * Page Component Input Field plugin
  *

@@ -6,8 +6,6 @@
  * GPLv3, see docs/LICENSE
  */
 
-include_once("./Services/COPage/classes/class.ilPageComponentPluginGUI.php");
-
 use ILIAS\UI\Component\MessageBox\Factory as ilUIMessage;
 
 /**
@@ -261,7 +259,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
     {
         global $lng, $ilCtrl;
 
-        include_once("Services/Form/classes/class.ilPropertyFormGUI.php");
         $form = new ilPropertyFormGUI();
 
         $name = new ilTextInputGUI($this->txt('field_name'), 'field_name');
@@ -300,7 +297,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             $context_source->addOption($ctx_text);
 
             $ctx_lm = new ilRadioOption($this->txt('field_ai_context_lm'), 'lm_page');
-            include_once("./Services/Form/classes/class.ilRepositorySelectorInputGUI.php");
             $lm_selector = new ilRepositorySelectorInputGUI($this->txt('field_ai_context_lm_select'), 'field_ai_context_lm_ref_id');
             $lm_selector->setClickableTypes(['lm']);
             $lm_selector->setHeaderMessage($this->txt('field_ai_context_lm_select'));
@@ -448,12 +444,10 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
     {
         global $lng, $ilCtrl;
 
-        include_once("Services/Form/classes/class.ilPropertyFormGUI.php");
         $form = new ilPropertyFormGUI();
 
         $prop = $this->getProperties();
 
-        include_once("./Services/Form/classes/class.ilRepositorySelectorInputGUI.php");
         $exercise_selector = new ilRepositorySelectorInputGUI($this->txt('select_exercise'), 'select_exercise');
         $exercise_selector->setClickableTypes(array("exc"));
         $exercise_selector->setHeaderMessage($this->plugin->txt('send_to_exercise'));
@@ -466,10 +460,8 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
             $ex_ref_id = (int)$select_exercise;
             $ex_obj_id = ilObject::_lookupObjectId($ex_ref_id);
             $exercise_selector->setValue($ex_ref_id);
-            //            include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
             $assignments_list = ilExAssignment::getAssignmentDataOfExercise($ex_obj_id);
             $selected_assignment = null;
-            include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
             $assignment_selector = new ilSelectInputGUI($this->txt('select_assignment'), "select_assignment");
 
             $assignment_array = array();
@@ -767,7 +759,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 //include_once("./Modules/Exercise/classes/class.ilExAssignment.php");
                 $obj_id = ilObject::_lookupObjId($a_properties['select_exercise']);
                 $assignments_list = ilExAssignment::getAssignmentDataOfExercise($obj_id);
-                include_once("./Services/Form/classes/class.ilSelectInputGUI.php");
 
                 $assignment_array = array();
                 $assignment_array["0"] = $this->txt('no_assignment_selected');
@@ -1047,8 +1038,6 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
     protected function getConfirmationModal($name)
     {
-        require_once 'Services/UIComponent/Modal/classes/class.ilModalGUI.php';
-
         $tpl = new ilTemplate('./Customizing/global/plugins/Services/COPage/PageComponent/PCInputField/templates/tpl.confirm.html', true, true);
 
         $button = ilLinkButton::getInstance();

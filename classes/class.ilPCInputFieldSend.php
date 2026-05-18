@@ -102,7 +102,6 @@ class ilPCInputFieldSend
      */
 
     //Get all assignments of exercise
-    include_once('./Modules/Exercise/Assignment/class.ilExAssignment.php');
     $exc_assignment_data = ilExAssignment::getAssignmentDataOfExercise($this->exercise_id);
 
     //Get assignment we want to send field content
@@ -147,7 +146,6 @@ class ilPCInputFieldSend
     }
 
     // add the user to the exercise
-    include_once('Modules/Exercise/classes/class.ilObjExercise.php');
     $exercise = new ilObjExercise($this->exercise_id, false);
     $members = $exercise->members_obj;
     if (!$members->isAssigned($this->user_id)) {
@@ -159,7 +157,6 @@ class ilPCInputFieldSend
     }
 
     //Create or update submission (NUR die originale Antwort)
-    include_once('./Modules/Exercise/Submission/class.ilExSubmission.php');
     $exc_submission = new ilExSubmission($assignment, $this->user_id);
     $exc_submission->updateTextSubmission($this->field_value);
 

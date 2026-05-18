@@ -6,8 +6,6 @@
  * GPLv3, see docs/LICENSE
  */
 
-include_once("./Services/Component/classes/class.ilPluginConfigGUI.php");
-
 /**
  * @ilCtrl_isCalledBy ilPCInputFieldConfigGUI: ilObjComponentSettingsGUI
  *
@@ -50,7 +48,6 @@ class ilPCInputFieldConfigGUI extends ilPluginConfigGUI
     {
         global $lng, $ilCtrl;
 
-        include_once("Services/Form/classes/class.ilPropertyFormGUI.php");
         $form = new ilPropertyFormGUI();
 
         // Globale KI-Aktivierung
