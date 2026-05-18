@@ -55,7 +55,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
 
             default:
                 $cmd = $ilCtrl->getCmd();
-                if (in_array($cmd, array("create", "save", "edit", "send", "update", "updateSend", "updateExerciseRefId", "updateContextLMRefId", "cancel"))) {
+                if (in_array($cmd, array("create", "create_plug", "save", "edit", "send", "update", "updateSend", "updateExerciseRefId", "updateContextLMRefId", "cancel"))) {
                     $this->$cmd();
                 }
                 break;
