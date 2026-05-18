@@ -13,7 +13,7 @@
 // ini_set('display_errors', '1');
 // ini_set('log_errors', '1');
 
-chdir("../../../../../../../");
+chdir("../../../../../../../../"); // ILIAS 10: +1 Ebene wegen public/
 
 // Client kontext setzen (wie in feed.php)
 if (isset($_GET["client_id"])) {
