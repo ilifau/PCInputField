@@ -567,6 +567,15 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         );
     }
 
+    protected function getPluginWebDir(): string
+    {
+        $plugin = $this->getPlugin();
+        if (method_exists($plugin, 'getRelativeDirectory')) {
+            return $plugin->getRelativeDirectory(); // ILIAS 10: relativer Pfad ab public/
+        }
+        return $plugin->getDirectory(); // ILIAS 9: bereits relativ
+    }
+
     public function getElementHTML(string $a_mode, array $a_properties, string $a_plugin_version): string
     {
         global $ilUser, $lng, $tpl, $DIC;
@@ -603,7 +612,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         $ctpl = $this->getPlugin()->getTemplate("tpl.content.html");
 
         if ($a_mode == self::MODE_PRESENTATION) {
-            $tpl->addJavaScript(ILIAS_HTTP_PATH . '/' . $this->plugin->getDirectory() . '/js/pcinfi.js?plugin_version=' . $this->plugin->getVersion());
+            $tpl->addJavaScript(ILIAS_HTTP_PATH . '/' . $this->getPluginWebDir() . '/js/pcinfi.js?plugin_version=' . $this->plugin->getVersion());
             $tpl->addOnLoadCode('il.PCInputField.init(' . json_encode($this->getJSTexts()) . ');');
         }
 
@@ -700,7 +709,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
         switch ($a_mode) {
             case self::MODE_PREVIEW:
             case self::MODE_PRESENTATION:
-                $service_url = ILIAS_HTTP_PATH . '/' . $this->getPlugin()->getDirectory() . '/service.php'
+                $service_url = ILIAS_HTTP_PATH . '/' . $this->getPluginWebDir() . '/service.php'
                     . '?client_id=' . CLIENT_ID
                     . '&amp;ref_id=' . (int)$_GET['ref_id']
                     . '&amp;context_type=' . urlencode($context_type)
@@ -719,7 +728,7 @@ class ilPCInputFieldPluginGUI extends ilPageComponentPluginGUI
                 if ($exc_back_ref_id > 0) {
                     $type = ilObjectFactory::getTypeByRefId($exc_back_ref_id);
                     if ($type == "exc") {
-                        $service_url = ILIAS_HTTP_PATH . '/' . $this->getPlugin()->getDirectory() . '/service.php'
+                        $service_url = ILIAS_HTTP_PATH . '/' . $this->getPluginWebDir() . '/service.php'
                             . '?client_id=' . CLIENT_ID
                             . '&amp;ref_id=' . $exc_back_ref_id
                             . '&amp;context_type=' . urlencode($context_type)
