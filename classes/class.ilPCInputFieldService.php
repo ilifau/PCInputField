@@ -178,7 +178,9 @@ class ilPCInputFieldService
         $valObj = ilPCInputFieldValue::getByKeys($context_type, $context_id, $ilUser->getId(), $field_name, true);
 
         // --- RACE-PROTECTION: Wenn kurz vorher ein sendInput lief und value leer ist -> NICHT speichern ---
-        $has_value_key = array_key_exists('value', $_POST);
+        // $_POST ist seit ILIAS 8 ein SuperGlobalDropInReplacement (ArrayAccess, kein Array),
+        // array_key_exists() wirft darauf unter PHP 8 einen TypeError
+        $has_value_key = isset($_POST['value']);
         $raw           = $has_value_key ? $_POST['value'] : null;
 
         // "Leer" definieren ('' oder leeres Array)
